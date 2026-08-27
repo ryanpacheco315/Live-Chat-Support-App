@@ -5,7 +5,7 @@ use live_chat_support;
 create table user (
                       id int primary key auto_increment,
                       full_name varchar(120) not null,
-                      username varchar(50) not null,
+                      username varchar(50) not null unique,
                       password text not null,
                       role varchar(20) not null
 );
@@ -13,10 +13,10 @@ create table user (
 create table chat (
                       id int primary key auto_increment,
                       client_id int not null,
-                      agent_id int not null,
+                      agent_id int,
                       status varchar(20) not null,
-                      problem_id int not null,
-                      time_id int not null
+                      problem_id int,
+                      time_id int
 );
 
 create table problem (
@@ -29,7 +29,7 @@ create table problem (
 create table time_record (
                              id int primary key auto_increment,
                              created_at timestamp not null,
-                             closed_at timestamp not null
+                             closed_at timestamp
 );
 
 create table message (

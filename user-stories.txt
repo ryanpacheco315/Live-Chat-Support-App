@@ -1,0 +1,36 @@
+Capstone: Live chat support
+
+(Logged out)
+Everyone:
+	•	When they open the program, it automatically directs to log in/sign up page.
+	•	Sign up makes a client. Also needs full name, username, password (all required)
+	•	Login needs a username and password. Depending on users role, it shows a different page.
+
+(Logged in)
+Client:
+	•	Has a home page explaining about program purpose (asking help)
+	•	The nav bar has home page, see past chats, and start a chat.
+	•	when they click past chats, it shows cards for each chat (with information), where if they click it, it shows the whole conversation. (Cannot edit or delete)
+	•	when they click start a chat, it sends to a chat looking page, where I can type to a chat. The other side is asking questions about my problems (like software or hardware or other), and goes more into detail.
+	•	The client does not click some type of button to complete the survey, but when the conversation with the both has gotten enough information, it puts the client to waiting.
+	•	When it has collected enough, it automatically saves that information about this problem, where they are now waiting for an agent.
+	•	When an agent connects, it shows that they connected to the chat. Chat continues until problem is solved. (Client on the right side).
+	•	If I close my chat (either by some button at the top), it takes me back to the home page and I can see it again in see past chats.
+	•	If the agent closes the chat, I cannot type to the chat, and I return back to the home page.
+Agent:
+	•	Has no home page, but there is a nav bar that has see past chats and see live chats. It should by default consider see live chats as the main page for an agent.
+	•	When they click past chats, it shows cards for each chat (with information), where if they click it, it shows the whole conversation. (Cannot edit or delete)
+	•	When they click see live chats, it shows chats that the client has started, like some sort of ticket. When an agent takes a chat, other agents cannot see it (occupied or in progress).
+	•	The agent can see which client started the chat, and the information on the problem from the small survey. They can only see the chat if the client has completed the survey.
+	•	The agent joins the chat, where they are on the left side. Chat continues until problem is solved.
+	•	If I close my chat (either by some button at the top), it takes me back to see live chats and I can see it again in see past chats.
+	•	If the client closes the chat, I cannot type to the chat, and I return back to the see live chats page.
+Admin:
+	•	Can see all the chats. Can filter the chats based on user usernames
+	•	Can create agents
+
+Anywhere inside a chat:
+	•	The only way to leave a chat is the button at the top (no back button, no URL change, and nav is hidden)
+
+Across the whole app:
+	•	Spring Security protects every page and enforces role-based access

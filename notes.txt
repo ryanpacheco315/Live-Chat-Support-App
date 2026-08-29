@@ -9,3 +9,9 @@
 2: backend/auth
 - implemented create and read for the repository, service and controller for the user table.
 - Set up security for spring security so that it is ready for the frontend.
+
+3: frontend skeleton-setup
+- added the dependencies for routing and bootstrap.
+- made fetching to the server dry, where more will be added for each request.
+- added the skeleton that displays the nav, and forms.
+- routed so that when a link is clicked, it routes to correct form.

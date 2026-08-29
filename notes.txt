@@ -15,3 +15,8 @@
 - made fetching to the server dry, where more will be added for each request.
 - added the skeleton that displays the nav, and forms.
 - routed so that when a link is clicked, it routes to correct form.
+
+4: frontend-auth
+- implemented the login and signup forms. Handles holding information about user and handles change and when submitting.
+Uses the api from client that creates the fetch.
+- when logged in, user information is stored. So if the page refreshes, it still holds the user that is logged in.

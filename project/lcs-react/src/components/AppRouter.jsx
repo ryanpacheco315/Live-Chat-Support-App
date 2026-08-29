@@ -29,10 +29,10 @@ function AppRouter() {
     const routes = [
         {
             path: "/",
-            element: <Layout user={user} />,
+            element: <Layout user={user} setUser={setUser} />,
             children: [
                 { path: "/", element: <Home /> },
-                { path: "/login", element: <LoginPage /> },
+                { path: "/login", element: <LoginPage setUser={setUser} /> },
                 { path: "/signup", element: <SignupPage /> },
             ],
         },

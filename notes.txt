@@ -20,3 +20,8 @@
 - implemented the login and signup forms. Handles holding information about user and handles change and when submitting.
 Uses the api from client that creates the fetch.
 - when logged in, user information is stored. So if the page refreshes, it still holds the user that is logged in.
+
+5: backend-problem-intake
+- created the repositories for problem, time_record, and problem.
+- service creates that chat in the database with time record and the problem. It is considered waiting with no agent linked to chat.
+- controllers endpoints are created to start a chat with a problem intake. Security to check if client send the request is implemented.

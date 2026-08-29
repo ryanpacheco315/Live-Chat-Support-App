@@ -1,3 +1,11 @@
 1: initialized project
 - Set up the backend by creating a maven project.
 - Set up the frontend by creating a React project using Vite.
+
+2: project fixes
+- implemented like Result, ResultType, and Error response so that it is used later.
+- created test schema so that the test do not mess with the actual database.
+
+2: backend/auth
+- implemented create and read for the repository, service and controller for the user table.
+- Set up security for spring security so that it is ready for the frontend.

@@ -39,6 +39,13 @@ function Nav({ user, setUser }) {
                             </NavLink>
                         </li>
                     )}
+                    {user && user.role === "AGENT" && (
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/queue">
+                                Live Chats
+                            </NavLink>
+                        </li>
+                    )}
                     {user && (
                         <li className="nav-item">
                             <button className="nav-link btn btn-link" onClick={handleLogOut}>

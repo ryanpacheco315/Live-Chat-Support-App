@@ -6,6 +6,7 @@ import LoginPage from "./auth/LoginPage";
 import SignupPage from "./auth/SignupPage";
 import StartChatPage from "./chats/StartChatPage";
 import WaitingPage from "./chats/WaitingPage";
+import AgentQueuePage from "./chats/AgentQueuePage";
 import { getCurrentUser } from "../api/auth";
 
 function AppRouter() {
@@ -38,6 +39,7 @@ function AppRouter() {
                 { path: "/signup", element: <SignupPage /> },
                 { path: "/start-chat", element: <StartChatPage /> },
                 { path: "/waiting", element: <WaitingPage /> },
+                { path: "/queue", element: <AgentQueuePage /> },
             ],
         },
     ];

@@ -4,6 +4,8 @@ import Layout from "./Layout";
 import Home from "./Home";
 import LoginPage from "./auth/LoginPage";
 import SignupPage from "./auth/SignupPage";
+import StartChatPage from "./chats/StartChatPage";
+import WaitingPage from "./chats/WaitingPage";
 import { getCurrentUser } from "../api/auth";
 
 function AppRouter() {
@@ -34,6 +36,8 @@ function AppRouter() {
                 { path: "/", element: <Home /> },
                 { path: "/login", element: <LoginPage setUser={setUser} /> },
                 { path: "/signup", element: <SignupPage /> },
+                { path: "/start-chat", element: <StartChatPage /> },
+                { path: "/waiting", element: <WaitingPage /> },
             ],
         },
     ];

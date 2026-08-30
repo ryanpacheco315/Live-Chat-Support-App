@@ -34,3 +34,7 @@ Uses the api from client that creates the fetch.
 - implemented the service layer for finding chats that are waiting.
 - implemented agent claiming the chat to start chatting.
 - created endpoints to use these features implemented.
+
+8: frontend/list-claim-chats-agents
+- implemented the agent side of the frontend, seeing the rows of chats that have a client waiting.
+- Allows

@@ -21,7 +21,7 @@ function LoginPage({ setUser }) {
 
         if (result.ok) {
             setUser(result.payload);
-            navigate("/");
+            navigate(result.payload.role === "AGENT" ? "/queue" : "/");
         } else {
             setErrors(result.payload);
         }

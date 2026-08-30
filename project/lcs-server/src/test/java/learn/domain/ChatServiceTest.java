@@ -8,10 +8,13 @@ import learn.data.TimeRecordRepository;
 import learn.models.Chat;
 import learn.models.ChatStatus;
 import learn.models.Problem;
+import learn.models.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,5 +86,53 @@ class ChatServiceTest {
         assertEquals(ChatStatus.WAITING, actual.getPayload().getStatus());
         assertNull(actual.getPayload().getAgent());
         assertEquals(TestDataHelper.existingClient(), actual.getPayload().getClient());
+    }
+
+    @Test
+    void shouldFindWaiting() throws DataAccessException {
+        when(chatRepository.findWaiting()).thenReturn(List.of(TestDataHelper.existingWaitingChat()));
+
+        List<Chat> actual = service.findWaiting();
+
+        assertEquals(List.of(TestDataHelper.existingWaitingChat()), actual);
+    }
+
+    @Test
+    void claimHappyPath() throws DataAccessException {
+        User agent = TestDataHelper.existingAgent();
+        when(chatRepository.claim(2, agent.getId())).thenReturn(true);
+        Chat claimedChat = new Chat(2, TestDataHelper.existingClient(), agent, ChatStatus.ACTIVE,
+                TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        when(chatRepository.findById(2)).thenReturn(claimedChat);
+
+        Result<Chat> actual = service.claim(2, agent);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.ACTIVE, actual.getPayload().getStatus());
+        assertEquals(agent, actual.getPayload().getAgent());
+    }
+
+    @Test
+    void claimFailsWhenAlreadyClaimed() throws DataAccessException {
+        User agent = TestDataHelper.existingAgent();
+        when(chatRepository.claim(1, agent.getId())).thenReturn(false);
+        when(chatRepository.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+
+        Result<Chat> actual = service.claim(1, agent);
+
+        assertEquals(ResultType.CONFLICT, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 1 has already been claimed."));
+    }
+
+    @Test
+    void claimFailsWhenNotFound() throws DataAccessException {
+        User agent = TestDataHelper.existingAgent();
+        when(chatRepository.claim(999, agent.getId())).thenReturn(false);
+        when(chatRepository.findById(999)).thenReturn(null);
+
+        Result<Chat> actual = service.claim(999, agent);
+
+        assertEquals(ResultType.NOT_FOUND, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 999 was not found."));
     }
 }

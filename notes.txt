@@ -37,4 +37,4 @@ Uses the api from client that creates the fetch.
 
 8: frontend/list-claim-chats-agents
 - implemented the agent side of the frontend, seeing the rows of chats that have a client waiting.
-- Allows
+- Allows agent to accept a waiting chat and change it in the database.

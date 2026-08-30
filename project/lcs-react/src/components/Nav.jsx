@@ -16,6 +16,7 @@ function Nav({ user, setUser }) {
                 <Link className="navbar-brand" to="/">
                     Live Chat Support
                 </Link>
+                {user && <span className="navbar-text me-3">Welcome, {user.fullName}</span>}
                 <ul className="navbar-nav">
                     {!user && (
                         <>
@@ -31,15 +32,19 @@ function Nav({ user, setUser }) {
                             </li>
                         </>
                     )}
+                    {user && user.role === "CLIENT" && (
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/start-chat">
+                                Start a Chat
+                            </NavLink>
+                        </li>
+                    )}
                     {user && (
-                        <>
-                            <li className="nav-item nav-link">Welcome, {user.fullName}</li>
-                            <li className="nav-item">
-                                <button className="nav-link btn btn-link" onClick={handleLogOut}>
-                                    Log Out
-                                </button>
-                            </li>
-                        </>
+                        <li className="nav-item">
+                            <button className="nav-link btn btn-link" onClick={handleLogOut}>
+                                Log Out
+                            </button>
+                        </li>
                     )}
                 </ul>
             </div>

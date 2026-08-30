@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chats").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/chats/waiting").hasRole("AGENT")
+                        .requestMatchers(HttpMethod.POST, "/api/chats/*/claim").hasRole("AGENT")
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout

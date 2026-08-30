@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ChatService {
@@ -37,6 +38,28 @@ public class ChatService {
         Chat createdChat = chatRepository.create(chat);
 
         result.setPayload(createdChat);
+        return result;
+    }
+
+    public List<Chat> findWaiting() throws DataAccessException {
+        return chatRepository.findWaiting();
+    }
+
+    public Result<Chat> claim(int chatId, User agent) throws DataAccessException {
+        Result<Chat> result = new Result<>();
+
+        boolean claimed = chatRepository.claim(chatId, agent.getId());
+        if (!claimed) {
+            Chat existing = chatRepository.findById(chatId);
+            if (existing == null) {
+                result.addErrorMessage("Chat %s was not found.", ResultType.NOT_FOUND, chatId);
+            } else {
+                result.addErrorMessage("Chat %s has already been claimed.", ResultType.CONFLICT, chatId);
+            }
+            return result;
+        }
+
+        result.setPayload(chatRepository.findById(chatId));
         return result;
     }
 

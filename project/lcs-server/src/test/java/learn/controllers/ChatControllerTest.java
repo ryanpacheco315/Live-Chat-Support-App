@@ -26,6 +26,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -55,6 +56,13 @@ class ChatControllerTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
                         "alice", "password", List.of(new SimpleGrantedAuthority("ROLE_CLIENT")))
+        );
+    }
+
+    private void authenticateAsBob() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "bob", "password", List.of(new SimpleGrantedAuthority("ROLE_AGENT")))
         );
     }
 
@@ -104,6 +112,58 @@ class ChatControllerTest {
         mvc.perform(post("/api/chats")
                         .contentType("application/json")
                         .content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldFindWaiting() throws Exception {
+        when(chatService.findWaiting()).thenReturn(List.of(TestDataHelper.existingWaitingChat()));
+
+        mvc.perform(get("/api/chats/waiting"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("WAITING"))
+                .andExpect(jsonPath("$[0].client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldClaim() throws Exception {
+        authenticateAsBob();
+
+        Result<User> agentResult = new Result<>();
+        agentResult.setPayload(TestDataHelper.existingAgent());
+        when(userService.findByUsername("bob")).thenReturn(agentResult);
+
+        Chat claimedChat = new Chat(2, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.ACTIVE, TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        Result<Chat> claimResult = new Result<>();
+        claimResult.setPayload(claimedChat);
+        when(chatService.claim(2, TestDataHelper.existingAgent())).thenReturn(claimResult);
+
+        mvc.perform(post("/api/chats/2/claim"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.agent.username").value("bob"));
+    }
+
+    @Test
+    void shouldRejectClaimWhenAlreadyClaimed() throws Exception {
+        authenticateAsBob();
+
+        Result<User> agentResult = new Result<>();
+        agentResult.setPayload(TestDataHelper.existingAgent());
+        when(userService.findByUsername("bob")).thenReturn(agentResult);
+
+        Result<Chat> claimResult = new Result<>();
+        claimResult.addErrorMessage("Chat 1 has already been claimed.", ResultType.CONFLICT);
+        when(chatService.claim(1, TestDataHelper.existingAgent())).thenReturn(claimResult);
+
+        mvc.perform(post("/api/chats/1/claim"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldRejectClaimWhenNotAuthenticated() throws Exception {
+        mvc.perform(post("/api/chats/1/claim"))
                 .andExpect(status().isUnauthorized());
     }
 }

@@ -25,3 +25,7 @@ Uses the api from client that creates the fetch.
 - created the repositories for problem, time_record, and problem.
 - service creates that chat in the database with time record and the problem. It is considered waiting with no agent linked to chat.
 - controllers endpoints are created to start a chat with a problem intake. Security to check if client send the request is implemented.
+
+6: frontend-problem-request-form
+- created the pages for creating a chat. Asking the client questions about the problem, so that it can be saved.
+- submitting questions sends to another page which should represent the chat.

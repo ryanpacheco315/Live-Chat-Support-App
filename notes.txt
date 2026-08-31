@@ -38,3 +38,9 @@ Uses the api from client that creates the fetch.
 8: frontend/list-claim-chats-agents
 - implemented the agent side of the frontend, seeing the rows of chats that have a client waiting.
 - Allows agent to accept a waiting chat and change it in the database.
+
+9: backend/realtime-messaging-client-agent
+- implemented repository for storing and retrieving chat messages.
+- starting and claiming a chat notify agents live.
+- Lock down chat subscriptions so you can only listen to chats that you are apart of.
+- Sending a live message and loading a active chat's past messages.

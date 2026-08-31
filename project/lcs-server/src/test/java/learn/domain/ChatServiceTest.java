@@ -2,17 +2,20 @@ package learn.domain;
 
 import learn.data.ChatRepository;
 import learn.data.DataAccessException;
+import learn.data.MessageRepository;
 import learn.data.ProblemRepository;
 import learn.data.TestDataHelper;
 import learn.data.TimeRecordRepository;
 import learn.models.Chat;
 import learn.models.ChatStatus;
+import learn.models.Message;
 import learn.models.Problem;
 import learn.models.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 
@@ -34,6 +37,12 @@ class ChatServiceTest {
 
     @MockBean
     TimeRecordRepository timeRecordRepository;
+
+    @MockBean
+    MessageRepository messageRepository;
+
+    @MockBean
+    SimpMessagingTemplate messagingTemplate;
 
     @Test
     void failsWhenCategoryMissing() throws DataAccessException {
@@ -86,6 +95,16 @@ class ChatServiceTest {
         assertEquals(ChatStatus.WAITING, actual.getPayload().getStatus());
         assertNull(actual.getPayload().getAgent());
         assertEquals(TestDataHelper.existingClient(), actual.getPayload().getClient());
+        verify(messagingTemplate).convertAndSend(eq("/topic/queue"), any(Object.class));
+    }
+
+    @Test
+    void shouldFindById() throws DataAccessException {
+        when(chatRepository.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+
+        Chat actual = service.findById(1);
+
+        assertEquals(TestDataHelper.existingActiveChat(), actual);
     }
 
     @Test
@@ -104,12 +123,17 @@ class ChatServiceTest {
         Chat claimedChat = new Chat(2, TestDataHelper.existingClient(), agent, ChatStatus.ACTIVE,
                 TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
         when(chatRepository.findById(2)).thenReturn(claimedChat);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
 
         Result<Chat> actual = service.claim(2, agent);
 
         assertTrue(actual.isSuccess());
         assertEquals(ChatStatus.ACTIVE, actual.getPayload().getStatus());
         assertEquals(agent, actual.getPayload().getAgent());
+        verify(messageRepository).create(argThat(message ->
+                message.getChatId() == 2 && message.getSender() == null));
+        verify(messagingTemplate).convertAndSend(eq("/topic/queue"), any(Object.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/chat/2"), any(Object.class));
     }
 
     @Test

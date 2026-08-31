@@ -72,4 +72,29 @@ public class TestDataHelper {
         return new Chat(2, existingClient(), null, ChatStatus.WAITING,
                 existingProblem2(), existingTimeRecord2());
     }
+
+    public static Message existingClientMessage() {
+        return new Message(1, 1, existingClient(), "My laptop will not turn on.",
+                LocalDateTime.of(2026, 1, 1, 9, 1));
+    }
+
+    public static Message existingAgentMessage() {
+        return new Message(2, 1, existingAgent(), "Hi, I can help with that.",
+                LocalDateTime.of(2026, 1, 1, 9, 2));
+    }
+
+    public static Message messageToCreate() {
+        return new Message(1, existingAgent(), "Have you tried turning it off and on again?",
+                LocalDateTime.of(2026, 1, 1, 9, 3));
+    }
+
+    public static Message messageAfterCreate() {
+        Message message = messageToCreate();
+        message.setId(3);
+        return message;
+    }
+
+    public static Message systemMessageToCreate() {
+        return new Message(2, null, "An agent has joined the chat.", LocalDateTime.of(2026, 1, 2, 11, 0));
+    }
 }

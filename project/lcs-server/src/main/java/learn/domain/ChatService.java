@@ -2,9 +2,14 @@ package learn.domain;
 
 import learn.data.ChatRepository;
 import learn.data.DataAccessException;
+import learn.data.MessageRepository;
 import learn.data.ProblemRepository;
 import learn.data.TimeRecordRepository;
+import learn.dtos.ChatResponse;
+import learn.dtos.MessageResponse;
+import learn.dtos.QueueUpdate;
 import learn.models.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,14 +18,22 @@ import java.util.List;
 
 @Service
 public class ChatService {
+    private static final String QUEUE_TOPIC = "/topic/queue";
+
     private final ChatRepository chatRepository;
     private final ProblemRepository problemRepository;
     private final TimeRecordRepository timeRecordRepository;
+    private final MessageRepository messageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public ChatService(ChatRepository chatRepository, ProblemRepository problemRepository, TimeRecordRepository timeRecordRepository) {
+    public ChatService(ChatRepository chatRepository, ProblemRepository problemRepository,
+                        TimeRecordRepository timeRecordRepository, MessageRepository messageRepository,
+                        SimpMessagingTemplate messagingTemplate) {
         this.chatRepository = chatRepository;
         this.problemRepository = problemRepository;
         this.timeRecordRepository = timeRecordRepository;
+        this.messageRepository = messageRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Transactional
@@ -38,13 +51,19 @@ public class ChatService {
         Chat createdChat = chatRepository.create(chat);
 
         result.setPayload(createdChat);
+        messagingTemplate.convertAndSend(QUEUE_TOPIC, QueueUpdate.added(ChatResponse.fromChat(createdChat)));
         return result;
+    }
+
+    public Chat findById(int chatId) throws DataAccessException {
+        return chatRepository.findById(chatId);
     }
 
     public List<Chat> findWaiting() throws DataAccessException {
         return chatRepository.findWaiting();
     }
 
+    @Transactional
     public Result<Chat> claim(int chatId, User agent) throws DataAccessException {
         Result<Chat> result = new Result<>();
 
@@ -59,7 +78,12 @@ public class ChatService {
             return result;
         }
 
-        result.setPayload(chatRepository.findById(chatId));
+        Chat updated = chatRepository.findById(chatId);
+        Message systemMessage = messageRepository.create(new Message(chatId, null, "An agent has joined the chat.", LocalDateTime.now()));
+
+        result.setPayload(updated);
+        messagingTemplate.convertAndSend(QUEUE_TOPIC, QueueUpdate.claimed(chatId));
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId, MessageResponse.fromMessage(systemMessage));
         return result;
     }
 

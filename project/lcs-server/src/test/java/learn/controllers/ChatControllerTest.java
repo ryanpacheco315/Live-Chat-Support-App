@@ -3,6 +3,7 @@ package learn.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import learn.data.TestDataHelper;
 import learn.domain.ChatService;
+import learn.domain.MessageService;
 import learn.domain.Result;
 import learn.domain.ResultType;
 import learn.domain.UserService;
@@ -43,6 +44,9 @@ class ChatControllerTest {
 
     @MockBean
     ChatService chatService;
+
+    @MockBean
+    MessageService messageService;
 
     @MockBean
     UserService userService;
@@ -164,6 +168,46 @@ class ChatControllerTest {
     @Test
     void shouldRejectClaimWhenNotAuthenticated() throws Exception {
         mvc.perform(post("/api/chats/1/claim"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldFindMessagesForParticipant() throws Exception {
+        authenticateAsAlice();
+        when(chatService.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+        when(messageService.findByChatId(1)).thenReturn(
+                List.of(TestDataHelper.existingClientMessage(), TestDataHelper.existingAgentMessage()));
+
+        mvc.perform(get("/api/chats/1/messages"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value("My laptop will not turn on."))
+                .andExpect(jsonPath("$[0].sender.password").doesNotExist());
+    }
+
+    @Test
+    void shouldRejectMessagesForNonParticipant() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+        );
+        when(chatService.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+
+        mvc.perform(get("/api/chats/1/messages"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldRejectMessagesWhenChatNotFound() throws Exception {
+        authenticateAsAlice();
+        when(chatService.findById(999)).thenReturn(null);
+
+        mvc.perform(get("/api/chats/999/messages"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRejectMessagesWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/1/messages"))
                 .andExpect(status().isUnauthorized());
     }
 }

@@ -2,9 +2,11 @@ package learn.controllers;
 
 import learn.data.DataAccessException;
 import learn.domain.ChatService;
+import learn.domain.MessageService;
 import learn.domain.Result;
 import learn.domain.UserService;
 import learn.dtos.ChatResponse;
+import learn.dtos.MessageResponse;
 import learn.models.Chat;
 import learn.models.Problem;
 import learn.models.User;
@@ -20,10 +22,12 @@ import java.util.List;
 @RequestMapping("/api/chats")
 public class ChatController {
     private final ChatService chatService;
+    private final MessageService messageService;
     private final UserService userService;
 
-    public ChatController(ChatService chatService, UserService userService) {
+    public ChatController(ChatService chatService, MessageService messageService, UserService userService) {
         this.chatService = chatService;
+        this.messageService = messageService;
         this.userService = userService;
     }
 
@@ -68,5 +72,30 @@ public class ChatController {
             return ErrorResponse.build(result);
         }
         return ResponseEntity.ok(ChatResponse.fromChat(result.getPayload()));
+    }
+
+    @GetMapping("/{id}/messages")
+    public ResponseEntity<?> findMessages(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Chat chat = chatService.findById(id);
+        if (chat == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        String username = authentication.getName();
+        boolean isParticipant = chat.getClient().getUsername().equals(username)
+                || (chat.getAgent() != null && chat.getAgent().getUsername().equals(username));
+        if (!isParticipant) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        List<MessageResponse> messages = messageService.findByChatId(id).stream()
+                .map(MessageResponse::fromMessage)
+                .toList();
+        return ResponseEntity.ok(messages);
     }
 }

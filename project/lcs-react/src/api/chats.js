@@ -11,3 +11,7 @@ export function getWaitingChats() {
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }
+
+export function getChatMessages(id) {
+    return api.get(`/chats/${id}/messages`);
+}

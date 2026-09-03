@@ -44,3 +44,8 @@ Uses the api from client that creates the fetch.
 - starting and claiming a chat notify agents live.
 - Lock down chat subscriptions so you can only listen to chats that you are apart of.
 - Sending a live message and loading a active chat's past messages.
+
+10: frontend/realtime-messagin-client-agent
+- implemented stomp client into the frontend, so that subscriptions can occur.
+- replay the live chats history, plus implemented sending a message in chat room
+- made it so client can automatically enter a chat room when agent claims ticket.

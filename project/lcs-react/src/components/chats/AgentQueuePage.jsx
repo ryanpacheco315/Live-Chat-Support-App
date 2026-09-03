@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import WaitingChatRow from "./WaitingChatRow";
 import { getWaitingChats } from "../../api/chats";
 
 function AgentQueuePage() {
+    const navigate = useNavigate();
     const [chats, setChats] = useState([]);
 
     async function loadWaitingChats() {
@@ -30,7 +32,7 @@ function AgentQueuePage() {
     }, []);
 
     function handleClaimed(chatId) {
-        setChats(chats.filter((chat) => chat.id !== chatId));
+        navigate(`/chat/${chatId}`);
     }
 
     return (

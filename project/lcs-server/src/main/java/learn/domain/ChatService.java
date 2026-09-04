@@ -87,6 +87,48 @@ public class ChatService {
         return result;
     }
 
+    @Transactional
+    public Result<Chat> close(int chatId, User requester) throws DataAccessException {
+        Result<Chat> result = new Result<>();
+
+        Chat chat = chatRepository.findById(chatId);
+        if (chat == null) {
+            result.addErrorMessage("Chat %s was not found.", ResultType.NOT_FOUND, chatId);
+            return result;
+        }
+
+        if (chat.getStatus() != ChatStatus.ACTIVE) {
+            result.addErrorMessage("Chat %s is not active.", ResultType.INVALID, chatId);
+            return result;
+        }
+
+        boolean isClient = chat.getClient().getId() == requester.getId();
+        boolean isAgent = chat.getAgent() != null && chat.getAgent().getId() == requester.getId();
+        if (!isClient && !isAgent) {
+            result.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+            return result;
+        }
+
+        ChatStatus finalStatus = isClient ? ChatStatus.CLOSED_UNSOLVED : ChatStatus.CLOSED_SOLVED;
+        chatRepository.close(chatId, finalStatus);
+
+        TimeRecord timeRecord = chat.getTimeRecord();
+        if (timeRecord != null) {
+            timeRecord.setClosedAt(LocalDateTime.now());
+            timeRecordRepository.update(timeRecord);
+        }
+
+        Chat closedChat = chatRepository.findById(chatId);
+        String closerLabel = isClient ? "the client" : "the agent";
+        Message systemMessage = messageRepository.create(
+                new Message(chatId, null, "Chat closed by " + closerLabel + ".", LocalDateTime.now()));
+
+        result.setPayload(closedChat);
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId, MessageResponse.fromMessage(systemMessage));
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId, ChatResponse.fromChat(closedChat));
+        return result;
+    }
+
     private void validate(Problem problem, Result<Chat> result) {
         if (problem == null) {
             result.addErrorMessage("Problem cannot be null.", ResultType.INVALID);

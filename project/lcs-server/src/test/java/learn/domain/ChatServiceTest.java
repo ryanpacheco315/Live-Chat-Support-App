@@ -159,4 +159,79 @@ class ChatServiceTest {
         assertEquals(ResultType.NOT_FOUND, actual.getType());
         assertTrue(actual.getErrorMessages().contains("Chat 999 was not found."));
     }
+
+    @Test
+    void closeByClientProducesUnsolved() throws DataAccessException {
+        User client = TestDataHelper.existingClient();
+        when(chatRepository.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+        Chat closedChat = new Chat(1, client, TestDataHelper.existingAgent(), ChatStatus.CLOSED_UNSOLVED,
+                TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        when(chatRepository.close(1, ChatStatus.CLOSED_UNSOLVED)).thenReturn(true);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
+
+        when(chatRepository.findById(1))
+                .thenReturn(TestDataHelper.existingActiveChat())
+                .thenReturn(closedChat);
+
+        Result<Chat> actual = service.close(1, client);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.CLOSED_UNSOLVED, actual.getPayload().getStatus());
+        verify(chatRepository).close(1, ChatStatus.CLOSED_UNSOLVED);
+        verify(timeRecordRepository).update(argThat(tr -> tr.getClosedAt() != null));
+        verify(messageRepository).create(argThat(message ->
+                message.getChatId() == 1 && message.getSender() == null));
+        verify(messagingTemplate, times(2)).convertAndSend(eq("/topic/chat/1"), any(Object.class));
+    }
+
+    @Test
+    void closeByAgentProducesSolved() throws DataAccessException {
+        User agent = TestDataHelper.existingAgent();
+        Chat closedChat = new Chat(1, TestDataHelper.existingClient(), agent, ChatStatus.CLOSED_SOLVED,
+                TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        when(chatRepository.close(1, ChatStatus.CLOSED_SOLVED)).thenReturn(true);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
+        when(chatRepository.findById(1))
+                .thenReturn(TestDataHelper.existingActiveChat())
+                .thenReturn(closedChat);
+
+        Result<Chat> actual = service.close(1, agent);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.CLOSED_SOLVED, actual.getPayload().getStatus());
+        verify(chatRepository).close(1, ChatStatus.CLOSED_SOLVED);
+    }
+
+    @Test
+    void closeFailsWhenNotFound() throws DataAccessException {
+        when(chatRepository.findById(999)).thenReturn(null);
+
+        Result<Chat> actual = service.close(999, TestDataHelper.existingClient());
+
+        assertEquals(ResultType.NOT_FOUND, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 999 was not found."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
+
+    @Test
+    void closeFailsWhenNotActive() throws DataAccessException {
+        when(chatRepository.findById(2)).thenReturn(TestDataHelper.existingWaitingChat());
+
+        Result<Chat> actual = service.close(2, TestDataHelper.existingClient());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 2 is not active."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
+
+    @Test
+    void closeFailsWhenNotParticipant() throws DataAccessException {
+        when(chatRepository.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+
+        Result<Chat> actual = service.close(1, TestDataHelper.existingAdmin());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("You are not a participant in this chat."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
 }

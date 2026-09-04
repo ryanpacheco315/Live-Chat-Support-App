@@ -49,3 +49,7 @@ Uses the api from client that creates the fetch.
 - implemented stomp client into the frontend, so that subscriptions can occur.
 - replay the live chats history, plus implemented sending a message in chat room
 - made it so client can automatically enter a chat room when agent claims ticket.
+
+11: backend/closing-chat
+- implemented closing the chat with the status that is decided by who is closing the chat.
+- endpoints created for closing the chat.

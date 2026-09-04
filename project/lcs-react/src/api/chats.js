@@ -15,3 +15,7 @@ export function claimChat(id) {
 export function getChatMessages(id) {
     return api.get(`/chats/${id}/messages`);
 }
+
+export function closeChat(id) {
+    return api.post(`/chats/${id}/close`);
+}

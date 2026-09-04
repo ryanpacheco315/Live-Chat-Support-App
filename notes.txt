@@ -53,3 +53,7 @@ Uses the api from client that creates the fetch.
 11: backend/closing-chat
 - implemented closing the chat with the status that is decided by who is closing the chat.
 - endpoints created for closing the chat.
+
+12: frontend/closing-chat-ui
+- created the close chat button and made the other user lockout from the chat.
+- based on the users role, it routes them to different locations.

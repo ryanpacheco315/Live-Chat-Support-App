@@ -74,6 +74,25 @@ public class ChatController {
         return ResponseEntity.ok(ChatResponse.fromChat(result.getPayload()));
     }
 
+    @PostMapping("/{id}/close")
+    public ResponseEntity<?> close(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Result<User> requesterResult = userService.findByUsername(authentication.getName());
+        if (!requesterResult.isSuccess()) {
+            return ErrorResponse.build(requesterResult);
+        }
+
+        Result<Chat> result = chatService.close(id, requesterResult.getPayload());
+        if (!result.isSuccess()) {
+            return ErrorResponse.build(result);
+        }
+        return ResponseEntity.ok(ChatResponse.fromChat(result.getPayload()));
+    }
+
     @GetMapping("/{id}/messages")
     public ResponseEntity<?> findMessages(@PathVariable int id) throws DataAccessException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

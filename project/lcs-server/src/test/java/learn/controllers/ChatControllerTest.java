@@ -210,4 +210,64 @@ class ChatControllerTest {
         mvc.perform(get("/api/chats/1/messages"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void shouldCloseAsClient() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Chat closedChat = new Chat(1, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_UNSOLVED, TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        Result<Chat> closeResult = new Result<>();
+        closeResult.setPayload(closedChat);
+        when(chatService.close(1, TestDataHelper.existingClient())).thenReturn(closeResult);
+
+        mvc.perform(post("/api/chats/1/close"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED_UNSOLVED"));
+    }
+
+    @Test
+    void shouldCloseAsAgent() throws Exception {
+        authenticateAsBob();
+        Result<User> agentResult = new Result<>();
+        agentResult.setPayload(TestDataHelper.existingAgent());
+        when(userService.findByUsername("bob")).thenReturn(agentResult);
+
+        Chat closedChat = new Chat(1, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        Result<Chat> closeResult = new Result<>();
+        closeResult.setPayload(closedChat);
+        when(chatService.close(1, TestDataHelper.existingAgent())).thenReturn(closeResult);
+
+        mvc.perform(post("/api/chats/1/close"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED_SOLVED"));
+    }
+
+    @Test
+    void shouldRejectCloseWhenNotParticipant() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+        );
+        Result<User> adminResult = new Result<>();
+        adminResult.setPayload(TestDataHelper.existingAdmin());
+        when(userService.findByUsername("carol")).thenReturn(adminResult);
+
+        Result<Chat> closeResult = new Result<>();
+        closeResult.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+        when(chatService.close(1, TestDataHelper.existingAdmin())).thenReturn(closeResult);
+
+        mvc.perform(post("/api/chats/1/close"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectCloseWhenNotAuthenticated() throws Exception {
+        mvc.perform(post("/api/chats/1/close"))
+                .andExpect(status().isUnauthorized());
+    }
 }

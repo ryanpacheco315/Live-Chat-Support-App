@@ -96,7 +96,7 @@ function ChatRoomPage({ user }) {
     }
 
     if (accessDenied) {
-        return <p>You don&apos;t have access to this chat.</p>;
+        return <p>You do not have access to this chat.</p>;
     }
 
     return (

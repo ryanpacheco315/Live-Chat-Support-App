@@ -41,7 +41,7 @@ function AppRouter() {
                 { path: "/start-chat", element: <StartChatPage /> },
                 { path: "/waiting", element: <WaitingPage /> },
                 { path: "/queue", element: <AgentQueuePage /> },
-                { path: "/chat/:id", element: <ChatRoomPage /> },
+                { path: "/chat/:id", element: <ChatRoomPage user={user} /> },
             ],
         },
     ];

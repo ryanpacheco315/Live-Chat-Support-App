@@ -108,6 +108,16 @@ class ChatServiceTest {
     }
 
     @Test
+    void shouldFindAll() throws DataAccessException {
+        when(chatRepository.findAll("alice"))
+                .thenReturn(List.of(TestDataHelper.existingActiveChat(), TestDataHelper.existingWaitingChat()));
+
+        List<Chat> actual = service.findAll("alice");
+
+        assertEquals(List.of(TestDataHelper.existingActiveChat(), TestDataHelper.existingWaitingChat()), actual);
+    }
+
+    @Test
     void shouldFindWaiting() throws DataAccessException {
         when(chatRepository.findWaiting()).thenReturn(List.of(TestDataHelper.existingWaitingChat()));
 

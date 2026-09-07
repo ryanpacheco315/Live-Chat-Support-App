@@ -70,6 +70,13 @@ class ChatControllerTest {
         );
     }
 
+    private void authenticateAsCarol() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+        );
+    }
+
     @Test
     void shouldStartChat() throws Exception {
         authenticateAsAlice();
@@ -127,6 +134,28 @@ class ChatControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("WAITING"))
                 .andExpect(jsonPath("$[0].client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldFindAll() throws Exception {
+        authenticateAsCarol();
+        when(chatService.findAll(null)).thenReturn(
+                List.of(TestDataHelper.existingActiveChat(), TestDataHelper.existingWaitingChat()));
+
+        mvc.perform(get("/api/chats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldFindAllFilteredByUsername() throws Exception {
+        authenticateAsCarol();
+        when(chatService.findAll("bob")).thenReturn(List.of(TestDataHelper.existingActiveChat()));
+
+        mvc.perform(get("/api/chats").param("username", "bob"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test

@@ -8,6 +8,10 @@ export function getWaitingChats() {
     return api.get("/chats/waiting");
 }
 
+export function getChat(id) {
+    return api.get(`/chats/${id}`);
+}
+
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }

@@ -42,9 +42,6 @@ function ChatRoomPage({ user }) {
         stompClient.onConnect = () => {
             stompClient.subscribe(`/topic/chat/${chatId}`, (frame) => {
                 const payload = JSON.parse(frame.body);
-                // Two different shapes ride this same topic: a chat message has a
-                // `body`, a close notice is a ChatResponse and has a `status` --
-                // that's the signal to lock the other side out and route them away.
                 if (payload.status) {
                     setClosed(true);
                 } else {

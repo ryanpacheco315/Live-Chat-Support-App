@@ -57,3 +57,10 @@ Uses the api from client that creates the fetch.
 12: frontend/closing-chat-ui
 - created the close chat button and made the other user lockout from the chat.
 - based on the users role, it routes them to different locations.
+
+---------------------------------- POST MVP ----------------------------------
+
+13: pmvp-feature/hide-nav-in-chat
+- created endpoints to find a chat by its id.
+- hides the navigation bar when inside the chat room.
+- make it so that a client that refreshes in the waiting page, it still keeps them waiting.

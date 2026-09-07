@@ -1,18 +1,47 @@
-import { useEffect } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { createStompClient } from "../../api/stomp";
+import { getChat } from "../../api/chats";
 
 function WaitingPage() {
+    const { id } = useParams();
+    const chatId = Number(id);
     const location = useLocation();
     const navigate = useNavigate();
-    const chat = location.state?.chat;
+
+    const [chat, setChat] = useState(location.state?.chat ?? null);
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
-        if (!chat) return;
+        if (chat) return;
 
-        // A WAITING chat can't receive any message except the "agent joined" system
-        // one (the backend rejects sends to a chat that isn't ACTIVE yet), so any
-        // message arriving here means it's time to move into the live chat room.
+        let isCancelled = false;
+
+        async function loadChat() {
+            const result = await getChat(chatId);
+            if (isCancelled) return;
+            if (result.ok) {
+                setChat(result.payload);
+            } else {
+                setNotFound(true);
+            }
+        }
+        loadChat();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [chat, chatId]);
+
+    useEffect(() => {
+        if (chat && chat.status !== "WAITING") {
+            navigate(`/chat/${chat.id}`, { replace: true });
+        }
+    }, [chat, navigate]);
+
+    useEffect(() => {
+        if (!chat || chat.status !== "WAITING") return;
+
         const stompClient = createStompClient();
 
         stompClient.onConnect = () => {
@@ -28,15 +57,17 @@ function WaitingPage() {
         };
     }, [chat, navigate]);
 
-    // No GET-by-id endpoint exists to re-fetch this on a refresh, so if the chat
-    // wasn't handed off via navigation state, there's nothing to show here.
-    if (!chat) {
-        return <Navigate to="/" />;
+    if (notFound) {
+        return <p>This chat could not be found.</p>;
+    }
+
+    if (!chat || chat.status !== "WAITING") {
+        return null;
     }
 
     return (
         <div>
-            <h1>You&apos;re in the queue</h1>
+            <h1>You are in the queue</h1>
             <p>An agent will be with you shortly.</p>
             <p>Category: {chat.problem.category}</p>
             {chat.problem.subcategory && <p>Subcategory: {chat.problem.subcategory}</p>}

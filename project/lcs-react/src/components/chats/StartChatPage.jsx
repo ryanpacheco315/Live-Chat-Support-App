@@ -21,7 +21,7 @@ function StartChatPage() {
         const result = await startChat(problem);
 
         if (result.ok) {
-            navigate("/waiting", { state: { chat: result.payload } });
+            navigate(`/waiting/${result.payload.id}`, { state: { chat: result.payload } });
         } else {
             setErrors(result.payload ?? ["Something went wrong. Please try again."]);
         }

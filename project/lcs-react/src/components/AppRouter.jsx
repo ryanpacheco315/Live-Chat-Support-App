@@ -39,7 +39,7 @@ function AppRouter() {
                 { path: "/login", element: <LoginPage setUser={setUser} /> },
                 { path: "/signup", element: <SignupPage /> },
                 { path: "/start-chat", element: <StartChatPage /> },
-                { path: "/waiting", element: <WaitingPage /> },
+                { path: "/waiting/:id", element: <WaitingPage /> },
                 { path: "/queue", element: <AgentQueuePage /> },
                 { path: "/chat/:id", element: <ChatRoomPage user={user} /> },
             ],

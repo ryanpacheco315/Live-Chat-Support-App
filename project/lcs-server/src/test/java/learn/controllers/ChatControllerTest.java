@@ -172,6 +172,44 @@ class ChatControllerTest {
     }
 
     @Test
+    void shouldFindByIdForParticipant() throws Exception {
+        authenticateAsAlice();
+        when(chatService.findById(2)).thenReturn(TestDataHelper.existingWaitingChat());
+
+        mvc.perform(get("/api/chats/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("WAITING"))
+                .andExpect(jsonPath("$.client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldRejectFindByIdForNonParticipant() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+        );
+        when(chatService.findById(2)).thenReturn(TestDataHelper.existingWaitingChat());
+
+        mvc.perform(get("/api/chats/2"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldRejectFindByIdWhenNotFound() throws Exception {
+        authenticateAsAlice();
+        when(chatService.findById(999)).thenReturn(null);
+
+        mvc.perform(get("/api/chats/999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRejectFindByIdWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/2"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldFindMessagesForParticipant() throws Exception {
         authenticateAsAlice();
         when(chatService.findById(1)).thenReturn(TestDataHelper.existingActiveChat());

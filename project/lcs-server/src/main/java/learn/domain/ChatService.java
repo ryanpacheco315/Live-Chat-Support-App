@@ -59,6 +59,10 @@ public class ChatService {
         return chatRepository.findById(chatId);
     }
 
+    public List<Chat> findAll(String username) throws DataAccessException {
+        return chatRepository.findAll(username);
+    }
+
     public List<Chat> findWaiting() throws DataAccessException {
         return chatRepository.findWaiting();
     }

@@ -64,3 +64,8 @@ Uses the api from client that creates the fetch.
 - created endpoints to find a chat by its id.
 - hides the navigation bar when inside the chat room.
 - make it so that a client that refreshes in the waiting page, it still keeps them waiting.
+
+14: pmvp-backend/admin-role
+- created an endpoint so an admin can create new agents.
+- created an endpoint so an admin can see every chat, with an ability to filter by username.
+- locked both endpoints down so only an admin can use them.

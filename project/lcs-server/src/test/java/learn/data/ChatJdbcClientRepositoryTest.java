@@ -39,6 +39,27 @@ class ChatJdbcClientRepositoryTest {
     }
 
     @Test
+    void shouldFindAll() throws DataAccessException {
+        List<Chat> actual = repository.findAll(null);
+
+        assertEquals(List.of(TestDataHelper.existingActiveChat(), TestDataHelper.existingWaitingChat()), actual);
+    }
+
+    @Test
+    void shouldFindAllFilteredByUsername() throws DataAccessException {
+        List<Chat> actual = repository.findAll("bob");
+
+        assertEquals(List.of(TestDataHelper.existingActiveChat()), actual);
+    }
+
+    @Test
+    void shouldFindAllMatchesEitherClientOrAgent() throws DataAccessException {
+        List<Chat> actual = repository.findAll("alice");
+
+        assertEquals(List.of(TestDataHelper.existingActiveChat(), TestDataHelper.existingWaitingChat()), actual);
+    }
+
+    @Test
     void shouldFindWaiting() throws DataAccessException {
         List<Chat> actual = repository.findWaiting();
 

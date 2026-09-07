@@ -55,6 +55,11 @@ public class ChatController {
         return chatService.findWaiting().stream().map(ChatResponse::fromChat).toList();
     }
 
+    @GetMapping
+    public List<ChatResponse> findAll(@RequestParam(required = false) String username) throws DataAccessException {
+        return chatService.findAll(username).stream().map(ChatResponse::fromChat).toList();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable int id) throws DataAccessException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

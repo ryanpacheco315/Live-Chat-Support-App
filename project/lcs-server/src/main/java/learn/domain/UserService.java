@@ -51,6 +51,14 @@ public class UserService {
     }
 
     public Result<User> create(User user) throws DataAccessException {
+        return createWithRole(user, Role.CLIENT);
+    }
+
+    public Result<User> createAgent(User user) throws DataAccessException {
+        return createWithRole(user, Role.AGENT);
+    }
+
+    private Result<User> createWithRole(User user, Role role) throws DataAccessException {
         Result<User> result = new Result<>();
         validate(user, result);
 
@@ -62,7 +70,7 @@ public class UserService {
             return result;
         }
 
-        user.setRole(Role.CLIENT);
+        user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User created = repository.create(user);

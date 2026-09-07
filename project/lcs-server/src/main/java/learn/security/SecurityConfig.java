@@ -56,6 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/chats").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/chats/waiting").hasRole("AGENT")
                         .requestMatchers(HttpMethod.POST, "/api/chats/*/claim").hasRole("AGENT")
+                        .requestMatchers(HttpMethod.GET, "/api/chats").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/agents").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout

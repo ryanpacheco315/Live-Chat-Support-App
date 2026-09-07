@@ -55,6 +55,25 @@ public class ChatController {
         return chatService.findWaiting().stream().map(ChatResponse::fromChat).toList();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Chat chat = chatService.findById(id);
+        if (chat == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (!isParticipant(chat, authentication.getName())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        return ResponseEntity.ok(ChatResponse.fromChat(chat));
+    }
+
     @PostMapping("/{id}/claim")
     public ResponseEntity<?> claim(@PathVariable int id) throws DataAccessException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -105,10 +124,7 @@ public class ChatController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        String username = authentication.getName();
-        boolean isParticipant = chat.getClient().getUsername().equals(username)
-                || (chat.getAgent() != null && chat.getAgent().getUsername().equals(username));
-        if (!isParticipant) {
+        if (!isParticipant(chat, authentication.getName())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -116,5 +132,10 @@ public class ChatController {
                 .map(MessageResponse::fromMessage)
                 .toList();
         return ResponseEntity.ok(messages);
+    }
+
+    private boolean isParticipant(Chat chat, String username) {
+        return chat.getClient().getUsername().equals(username)
+                || (chat.getAgent() != null && chat.getAgent().getUsername().equals(username));
     }
 }

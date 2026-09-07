@@ -8,6 +8,11 @@ export function getWaitingChats() {
     return api.get("/chats/waiting");
 }
 
+export function getAllChats(username) {
+    const query = username ? `?username=${encodeURIComponent(username)}` : "";
+    return api.get(`/chats${query}`);
+}
+
 export function getChat(id) {
     return api.get(`/chats/${id}`);
 }

@@ -69,3 +69,7 @@ Uses the api from client that creates the fetch.
 - created an endpoint so an admin can create new agents.
 - created an endpoint so an admin can see every chat, with an ability to filter by username.
 - locked both endpoints down so only an admin can use them.
+
+15: pmvp-frontend/admin-role
+- created a page so an admin can create agents from the ui.
+- created a page listing every chat, with an option to filter by username.

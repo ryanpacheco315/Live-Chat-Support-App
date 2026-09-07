@@ -8,6 +8,8 @@ import StartChatPage from "./chats/StartChatPage";
 import WaitingPage from "./chats/WaitingPage";
 import AgentQueuePage from "./chats/AgentQueuePage";
 import ChatRoomPage from "./chats/ChatRoomPage";
+import CreateAgentPage from "./admin/CreateAgentPage";
+import AllChatsPage from "./admin/AllChatsPage";
 import { getCurrentUser } from "../api/auth";
 
 function AppRouter() {
@@ -42,6 +44,8 @@ function AppRouter() {
                 { path: "/waiting/:id", element: <WaitingPage /> },
                 { path: "/queue", element: <AgentQueuePage /> },
                 { path: "/chat/:id", element: <ChatRoomPage user={user} /> },
+                { path: "/admin/create-agent", element: <CreateAgentPage /> },
+                { path: "/admin/chats", element: <AllChatsPage /> },
             ],
         },
     ];

@@ -172,4 +172,42 @@ class UserServiceTest {
             assertTrue(passwordEncoder.matches(rawPassword, actual.getPayload().getPassword()));
         }
     }
+
+    @Nested
+    class CreateAgent {
+        @Test
+        void forcesAgentRoleRegardlessOfInput() throws DataAccessException {
+            User toCreate = TestDataHelper.userToCreate();
+            toCreate.setRole(Role.CLIENT);
+            User created = new User(4, toCreate.getFullName(), toCreate.getUsername(), "hashed", Role.AGENT);
+            when(repository.create(any(User.class))).thenReturn(created);
+
+            Result<User> actual = service.createAgent(toCreate);
+
+            assertTrue(actual.isSuccess());
+            assertEquals(Role.AGENT, actual.getPayload().getRole());
+        }
+
+        @Test
+        void failsWhenUsernameTaken() throws DataAccessException {
+            User toCreate = TestDataHelper.userToCreate();
+            when(repository.findByUsername(toCreate.getUsername())).thenReturn(TestDataHelper.existingAgent());
+
+            Result<User> actual = service.createAgent(toCreate);
+
+            assertEquals(ResultType.INVALID, actual.getType());
+            verify(repository, never()).create(any());
+        }
+
+        @Test
+        void failsWhenPasswordTooShort() throws DataAccessException {
+            User toCreate = TestDataHelper.userToCreate();
+            toCreate.setPassword("short");
+
+            Result<User> actual = service.createAgent(toCreate);
+
+            assertEquals(ResultType.INVALID, actual.getType());
+            assertTrue(actual.getErrorMessages().contains(String.format("User `password` must be at least %s characters.", UserService.MIN_PASSWORD_LENGTH)));
+        }
+    }
 }

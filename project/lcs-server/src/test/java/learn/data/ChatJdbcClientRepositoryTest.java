@@ -60,6 +60,30 @@ class ChatJdbcClientRepositoryTest {
     }
 
     @Test
+    void shouldFindNoHistoryWhenNothingClosed() throws DataAccessException {
+        assertTrue(repository.findClosedByUsername("alice").isEmpty());
+    }
+
+    @Test
+    void shouldFindClosedByUsernameForClientAndAgent() throws DataAccessException {
+        assertTrue(repository.close(1, ChatStatus.CLOSED_SOLVED));
+
+        List<Chat> aliceHistory = repository.findClosedByUsername("alice");
+        List<Chat> bobHistory = repository.findClosedByUsername("bob");
+
+        assertEquals(1, aliceHistory.size());
+        assertEquals(ChatStatus.CLOSED_SOLVED, aliceHistory.get(0).getStatus());
+        assertEquals(1, bobHistory.size());
+    }
+
+    @Test
+    void shouldNotIncludeSomeoneNotOnTheClosedChat() throws DataAccessException {
+        assertTrue(repository.close(1, ChatStatus.CLOSED_UNSOLVED));
+
+        assertTrue(repository.findClosedByUsername("carol").isEmpty());
+    }
+
+    @Test
     void shouldFindWaiting() throws DataAccessException {
         List<Chat> actual = repository.findWaiting();
 

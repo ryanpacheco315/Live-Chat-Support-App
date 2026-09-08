@@ -32,6 +32,13 @@ function Nav({ user, setUser }) {
                             </li>
                         </>
                     )}
+                    {user && (user.role === "CLIENT" || user.role === "AGENT") && (
+                        <li className="nav-item">
+                            <NavLink className="nav-link" to="/past-chats">
+                                Past Chats
+                            </NavLink>
+                        </li>
+                    )}
                     {user && user.role === "CLIENT" && (
                         <li className="nav-item">
                             <NavLink className="nav-link" to="/start-chat">

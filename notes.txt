@@ -77,3 +77,7 @@ Uses the api from client that creates the fetch.
 16: pmvp-frontend/queue-live-updates-websocket
 - agent's live chats queue now updates on its own instead of needing a refresh button.
 - new tickets appear and ones claimed by other agents disappear automatically.
+
+17: pmvp-backend/past-chats-history
+- added an endpoint so a user can see their own past chats that are closed.
+- viewing a past chat's full interaction already worked, so using that same feature.

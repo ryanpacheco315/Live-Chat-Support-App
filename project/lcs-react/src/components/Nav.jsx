@@ -1,6 +1,11 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 
+function navButtonClass(color) {
+    return ({ isActive }) =>
+        `btn btn-sm me-2 ${isActive ? `btn-outline-${color} nav-btn-active` : `btn-${color}`}`;
+}
+
 function Nav({ user, setUser }) {
     const navigate = useNavigate();
 
@@ -11,70 +16,55 @@ function Nav({ user, setUser }) {
     }
 
     return (
-        <nav className="navbar navbar-expand">
-            <div className="d-flex">
+        <nav className="navbar navbar-expand navbar-gray border-bottom px-3 py-2">
+            <div className="d-flex align-items-center w-100">
                 <Link className="navbar-brand" to="/">
                     Live Chat Support
                 </Link>
                 {user && <span className="navbar-text me-3">Welcome, {user.fullName}</span>}
-                <ul className="navbar-nav">
+
+                <div className="d-flex align-items-center ms-auto">
                     {!user && (
                         <>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" to="/login">
-                                    Log In
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" to="/signup">
-                                    Sign Up
-                                </NavLink>
-                            </li>
+                            <NavLink to="/login" className={navButtonClass("primary")}>
+                                Log In
+                            </NavLink>
+                            <NavLink to="/signup" className={navButtonClass("secondary")}>
+                                Sign Up
+                            </NavLink>
                         </>
                     )}
                     {user && (user.role === "CLIENT" || user.role === "AGENT") && (
-                        <li className="nav-item">
-                            <NavLink className="nav-link" to="/past-chats">
-                                Past Chats
-                            </NavLink>
-                        </li>
+                        <NavLink to="/past-chats" className={navButtonClass("info")}>
+                            Past Chats
+                        </NavLink>
                     )}
                     {user && user.role === "CLIENT" && (
-                        <li className="nav-item">
-                            <NavLink className="nav-link" to="/start-chat">
-                                Start a Chat
-                            </NavLink>
-                        </li>
+                        <NavLink to="/start-chat" className={navButtonClass("success")}>
+                            Start a Chat
+                        </NavLink>
                     )}
                     {user && user.role === "AGENT" && (
-                        <li className="nav-item">
-                            <NavLink className="nav-link" to="/queue">
-                                Live Chats
-                            </NavLink>
-                        </li>
+                        <NavLink to="/queue" className={navButtonClass("warning")}>
+                            Live Chats
+                        </NavLink>
                     )}
                     {user && user.role === "ADMIN" && (
                         <>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" to="/admin/create-agent">
-                                    Create Agent
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" to="/admin/chats">
-                                    All Chats
-                                </NavLink>
-                            </li>
+                            <NavLink to="/admin/create-agent" className={navButtonClass("secondary")}>
+                                Create Agent
+                            </NavLink>
+                            <NavLink to="/admin/chats" className={navButtonClass("dark")}>
+                                All Chats
+                            </NavLink>
                         </>
                     )}
                     {user && (
-                        <li className="nav-item">
-                            <button className="nav-link btn btn-link" onClick={handleLogOut}>
-                                Log Out
-                            </button>
-                        </li>
+                        <button className="btn btn-sm btn-danger" onClick={handleLogOut}>
+                            Log Out
+                        </button>
                     )}
-                </ul>
+                </div>
             </div>
         </nav>
     );

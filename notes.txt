@@ -85,3 +85,9 @@ Uses the api from client that creates the fetch.
 18: pmvp-frontend/past-chats-history
 - created a page showing cards for each of a client or agent's past chats.
 - clicking a card shows the full interaction.
+
+19: pmvp-frontend/styling-improving
+- nav is now a full-width gray bar, links are solid colored buttons with an outline on the active page.
+- fixed login, signup, and intake forms. Inputs and buttons had no bootstrap styling at all before.
+- chat rooms agent bubble is lime green, messages scroll in a fixed sized box while the input stays pinned.
+- added an intro on the home page explaining the program and to not leave the chat early.

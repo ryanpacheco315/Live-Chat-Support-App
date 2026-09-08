@@ -1,0 +1,17 @@
+.chat-bubble-agent {
+  background-color: rgb(53, 205, 53);
+}
+
+.navbar-gray {
+  background-color: rgb(157, 162, 158);
+}
+
+.nav-btn-active {
+  border-width: 3px;
+}
+
+.btn:hover {
+  --bs-btn-hover-bg: var(--bs-btn-active-bg);
+  --bs-btn-hover-border-color: var(--bs-btn-active-border-color);
+  --bs-btn-hover-color: var(--bs-btn-active-color);
+}

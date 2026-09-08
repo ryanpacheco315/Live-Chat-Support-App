@@ -8,7 +8,7 @@ function ChatMessageBubble({ message }) {
     return (
         <div className={`d-flex mb-2 ${isClient ? "justify-content-end" : "justify-content-start"}`}>
             <div
-                className={`p-2 rounded ${isClient ? "bg-primary text-white" : "bg-light"}`}
+                className={`p-3 rounded ${isClient ? "bg-primary text-white" : "chat-bubble-agent"}`}
                 style={{ maxWidth: "70%" }}
             >
                 <div className="small fw-bold">{message.sender.fullName}</div>

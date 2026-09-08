@@ -15,6 +15,7 @@ function ChatRoomPage({ user }) {
     const [closeError, setCloseError] = useState(null);
     const [body, setBody] = useState("");
     const clientRef = useRef(null);
+    const messagesEndRef = useRef(null);
 
     function addMessage(message) {
         setMessages((current) =>
@@ -66,6 +67,10 @@ function ChatRoomPage({ user }) {
         return () => clearTimeout(timeoutId);
     }, [closed, user, navigate]);
 
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
     function handleChange(event) {
         setBody(event.target.value);
     }
@@ -97,8 +102,8 @@ function ChatRoomPage({ user }) {
     }
 
     return (
-        <div>
-            <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="p-3">
+            <div className="d-flex justify-content-between align-items-center mb-3">
                 <h4>Live Chat</h4>
                 <div>
                     <button className="btn btn-danger" onClick={handleClose} disabled={closed}>
@@ -114,12 +119,16 @@ function ChatRoomPage({ user }) {
                 </div>
             )}
 
-            <div className="border rounded p-3 mb-3" style={{ minHeight: "300px" }}>
+            <div
+                className="border rounded p-4 mb-0"
+                style={{ height: "60vh", overflowY: "auto" }}
+            >
                 {messages.map((message) => (
                     <ChatMessageBubble key={message.id} message={message} />
                 ))}
+                <div ref={messagesEndRef} />
             </div>
-            <form className="d-flex" onSubmit={handleSend}>
+            <form className="d-flex pt-3" onSubmit={handleSend}>
                 <input
                     className="form-control me-2"
                     type="text"

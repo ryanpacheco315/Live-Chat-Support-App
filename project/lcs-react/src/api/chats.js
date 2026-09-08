@@ -13,6 +13,10 @@ export function getAllChats(username) {
     return api.get(`/chats${query}`);
 }
 
+export function getMyChatHistory() {
+    return api.get("/chats/mine");
+}
+
 export function getChat(id) {
     return api.get(`/chats/${id}`);
 }

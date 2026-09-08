@@ -81,3 +81,7 @@ Uses the api from client that creates the fetch.
 17: pmvp-backend/past-chats-history
 - added an endpoint so a user can see their own past chats that are closed.
 - viewing a past chat's full interaction already worked, so using that same feature.
+
+18: pmvp-frontend/past-chats-history
+- created a page showing cards for each of a client or agent's past chats.
+- clicking a card shows the full interaction.

@@ -20,9 +20,6 @@ function AgentQueuePage() {
 
         loadInitialChats();
 
-        // The fetch above only captures the queue as of this moment -- this
-        // subscription is what keeps it live after that: new tickets get added,
-        // and ones another agent claims first disappear without a manual refresh.
         const stompClient = createStompClient();
 
         stompClient.onConnect = () => {

@@ -159,6 +159,23 @@ class ChatControllerTest {
     }
 
     @Test
+    void shouldFindMine() throws Exception {
+        authenticateAsAlice();
+        when(chatService.findHistory("alice")).thenReturn(List.of(TestDataHelper.existingActiveChat()));
+
+        mvc.perform(get("/api/chats/mine"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldRejectFindMineWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/mine"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldClaim() throws Exception {
         authenticateAsBob();
 

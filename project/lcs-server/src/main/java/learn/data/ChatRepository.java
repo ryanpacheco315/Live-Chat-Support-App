@@ -10,6 +10,8 @@ public interface ChatRepository {
 
     List<Chat> findAll(String username) throws DataAccessException;
 
+    List<Chat> findClosedByUsername(String username) throws DataAccessException;
+
     List<Chat> findWaiting() throws DataAccessException;
 
     Chat create(Chat chat) throws DataAccessException;

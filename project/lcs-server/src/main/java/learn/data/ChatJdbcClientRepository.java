@@ -59,6 +59,16 @@ public class ChatJdbcClientRepository implements ChatRepository {
     }
 
     @Override
+    public List<Chat> findClosedByUsername(String username) throws DataAccessException {
+        return jdbcClient.sql(BASE_SELECT
+                        + " where (client.username = :username or agent.username = :username)"
+                        + " and c.status in ('CLOSED_SOLVED', 'CLOSED_UNSOLVED') order by c.id")
+                .param("username", username)
+                .query(new ChatMapper())
+                .list();
+    }
+
+    @Override
     public List<Chat> findWaiting() throws DataAccessException {
         return jdbcClient.sql(BASE_SELECT + " where c.status = 'WAITING'")
                 .query(new ChatMapper())

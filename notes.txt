@@ -73,3 +73,7 @@ Uses the api from client that creates the fetch.
 15: pmvp-frontend/admin-role
 - created a page so an admin can create agents from the ui.
 - created a page listing every chat, with an option to filter by username.
+
+16: pmvp-frontend/queue-live-updates-websocket
+- agent's live chats queue now updates on its own instead of needing a refresh button.
+- new tickets appear and ones claimed by other agents disappear automatically.

@@ -2,17 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import WaitingChatRow from "./WaitingChatRow";
 import { getWaitingChats } from "../../api/chats";
+import { createStompClient } from "../../api/stomp";
 
 function AgentQueuePage() {
     const navigate = useNavigate();
     const [chats, setChats] = useState([]);
-
-    async function loadWaitingChats() {
-        const result = await getWaitingChats();
-        if (result.ok) {
-            setChats(result.payload);
-        }
-    }
 
     useEffect(() => {
         let isCancelled = false;
@@ -26,8 +20,32 @@ function AgentQueuePage() {
 
         loadInitialChats();
 
+        // The fetch above only captures the queue as of this moment -- this
+        // subscription is what keeps it live after that: new tickets get added,
+        // and ones another agent claims first disappear without a manual refresh.
+        const stompClient = createStompClient();
+
+        stompClient.onConnect = () => {
+            stompClient.subscribe("/topic/queue", (frame) => {
+                const update = JSON.parse(frame.body);
+
+                if (update.type === "ADDED") {
+                    setChats((current) =>
+                        current.some((chat) => chat.id === update.chat.id)
+                            ? current
+                            : [...current, update.chat]
+                    );
+                } else if (update.type === "CLAIMED") {
+                    setChats((current) => current.filter((chat) => chat.id !== update.chatId));
+                }
+            });
+        };
+
+        stompClient.activate();
+
         return () => {
             isCancelled = true;
+            stompClient.deactivate();
         };
     }, []);
 
@@ -37,14 +55,7 @@ function AgentQueuePage() {
 
     return (
         <>
-            <div className="d-flex justify-content-between align-items-center">
-                <h4>Live Chats</h4>
-                {/* Websockets will list the waiting chats.
-                    For now, refreshing the page will update the list.*/}
-                <button className="btn btn-secondary mb-2" onClick={loadWaitingChats}>
-                    Refresh
-                </button>
-            </div>
+            <h4>Live Chats</h4>
 
             <table className="table table-striped">
                 <thead>

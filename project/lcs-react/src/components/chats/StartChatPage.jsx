@@ -42,9 +42,12 @@ function StartChatPage() {
                         </ul>
                     )}
 
-                    <div className="form-control">
-                        <label htmlFor="category-input">Category:</label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="category-input">
+                            Category
+                        </label>
                         <select
+                            className="form-select"
                             name="category"
                             id="category-input"
                             value={problem.category}
@@ -56,9 +59,12 @@ function StartChatPage() {
                         </select>
                     </div>
 
-                    <div className="form-control">
-                        <label htmlFor="subcategory-input">Subcategory (optional):</label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="subcategory-input">
+                            Subcategory (optional)
+                        </label>
                         <input
+                            className="form-control"
                             type="text"
                             id="subcategory-input"
                             name="subcategory"
@@ -67,9 +73,12 @@ function StartChatPage() {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <label htmlFor="description-input">Describe the problem:</label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="description-input">
+                            Describe the problem
+                        </label>
                         <textarea
+                            className="form-control"
                             id="description-input"
                             name="description"
                             onChange={handleChange}
@@ -77,9 +86,9 @@ function StartChatPage() {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <button type="submit">Start Chat</button>
-                    </div>
+                    <button className="btn btn-primary" type="submit">
+                        Start Chat
+                    </button>
                 </form>
 
                 <div className="col-3" />

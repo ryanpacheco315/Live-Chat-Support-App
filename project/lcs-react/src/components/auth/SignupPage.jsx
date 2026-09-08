@@ -21,7 +21,6 @@ function SignupPage() {
         const result = await signup(user);
 
         if (result.ok) {
-            // Signup doesn't start a session (only /login does), so send them to log in.
             navigate("/login");
         } else {
             setErrors(result.payload);
@@ -36,16 +35,19 @@ function SignupPage() {
 
                 <form className="col-6" onSubmit={handleSubmit}>
                     {errors.length > 0 && (
-                        <ul>
+                        <ul className="alert alert-danger">
                             {errors.map((error) => (
                                 <li key={error}>{error}</li>
                             ))}
                         </ul>
                     )}
 
-                    <div className="form-control">
-                        <label htmlFor="fullName-input">Full name: </label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="fullName-input">
+                            Full name
+                        </label>
                         <input
+                            className="form-control"
                             type="text"
                             id="fullName-input"
                             name="fullName"
@@ -54,9 +56,12 @@ function SignupPage() {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <label htmlFor="username-input">Username: </label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="username-input">
+                            Username
+                        </label>
                         <input
+                            className="form-control"
                             type="text"
                             id="username-input"
                             name="username"
@@ -65,9 +70,12 @@ function SignupPage() {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <label htmlFor="password-input">Password: </label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="password-input">
+                            Password
+                        </label>
                         <input
+                            className="form-control"
                             type="password"
                             id="password-input"
                             name="password"
@@ -76,9 +84,9 @@ function SignupPage() {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <button type="submit">Sign up!</button>
-                    </div>
+                    <button className="btn btn-primary" type="submit">
+                        Sign up!
+                    </button>
                 </form>
 
                 <div className="col-3" />

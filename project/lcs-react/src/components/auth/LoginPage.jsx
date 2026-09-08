@@ -35,16 +35,19 @@ function LoginPage({ setUser }) {
 
                 <form className="col-6" onSubmit={handleSubmit}>
                     {errors.length > 0 && (
-                        <ul>
+                        <ul className="alert alert-danger">
                             {errors.map((error) => (
                                 <li key={error}>{error}</li>
                             ))}
                         </ul>
                     )}
 
-                    <div className="form-control">
-                        <label htmlFor="username-input">Username: </label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="username-input">
+                            Username
+                        </label>
                         <input
+                            className="form-control"
                             type="text"
                             id="username-input"
                             name="username"
@@ -53,9 +56,12 @@ function LoginPage({ setUser }) {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <label htmlFor="password-input">Password: </label>
+                    <div className="mb-3">
+                        <label className="form-label" htmlFor="password-input">
+                            Password
+                        </label>
                         <input
+                            className="form-control"
                             type="password"
                             id="password-input"
                             name="password"
@@ -64,9 +70,9 @@ function LoginPage({ setUser }) {
                         />
                     </div>
 
-                    <div className="form-control">
-                        <button type="submit">Log in!</button>
-                    </div>
+                    <button className="btn btn-primary" type="submit">
+                        Log in!
+                    </button>
                 </form>
 
                 <div className="col-3" />

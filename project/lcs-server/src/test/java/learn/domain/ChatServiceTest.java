@@ -118,6 +118,15 @@ class ChatServiceTest {
     }
 
     @Test
+    void shouldFindHistory() throws DataAccessException {
+        when(chatRepository.findClosedByUsername("alice")).thenReturn(List.of(TestDataHelper.existingActiveChat()));
+
+        List<Chat> actual = service.findHistory("alice");
+
+        assertEquals(List.of(TestDataHelper.existingActiveChat()), actual);
+    }
+
+    @Test
     void shouldFindWaiting() throws DataAccessException {
         when(chatRepository.findWaiting()).thenReturn(List.of(TestDataHelper.existingWaitingChat()));
 

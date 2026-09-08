@@ -60,6 +60,19 @@ public class ChatController {
         return chatService.findAll(username).stream().map(ChatResponse::fromChat).toList();
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<?> findMine() throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        List<ChatResponse> history = chatService.findHistory(authentication.getName()).stream()
+                .map(ChatResponse::fromChat)
+                .toList();
+        return ResponseEntity.ok(history);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable int id) throws DataAccessException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

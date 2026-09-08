@@ -6,16 +6,14 @@ function Layout({ user, setUser }) {
     const inChat = location.pathname.startsWith("/chat/");
 
     return (
-        <div className="container">
-            {!inChat && (
-                <header className="mb-3">
-                    <Nav user={user} setUser={setUser} />
-                </header>
-            )}
-            <main>
-                <Outlet />
-            </main>
-        </div>
+        <>
+            {!inChat && <Nav user={user} setUser={setUser} />}
+            <div className="container">
+                <main className={inChat ? "" : "py-3"}>
+                    <Outlet />
+                </main>
+            </div>
+        </>
     );
 }
 

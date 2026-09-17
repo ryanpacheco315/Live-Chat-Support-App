@@ -1,0 +1,31 @@
+name: live-chat-support-with-db
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: live_chat_support
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./project/lcs-server/database/production-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./project/lcs-server/database/seed-data.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+    restart: unless-stopped
+
+  backend:
+    environment:
+      DB_URL: jdbc:mysql://db:3306/live_chat_support?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

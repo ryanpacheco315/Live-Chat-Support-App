@@ -40,16 +40,27 @@ create table message (
     created_at timestamp not null
 );
 
+create table chat_embedding (
+    id int primary key auto_increment,
+    chat_id int not null,
+    content text not null,
+    embedding json not null,
+    created_at timestamp not null
+);
+
 alter table chat add constraint fk_chat_client foreign key (client_id) references user(id);
 alter table chat add constraint fk_chat_agent foreign key (agent_id) references user(id);
 alter table chat add constraint fk_chat_problem foreign key (problem_id) references problem(id);
 alter table chat add constraint fk_chat_time foreign key (time_id) references time_record(id);
 alter table message add constraint fk_message_chat foreign key (chat_id) references chat(id);
 alter table message add constraint fk_message_sender foreign key (sender_id) references user(id);
+alter table chat_embedding add constraint fk_chat_embedding_chat foreign key (chat_id) references chat(id);
 
 delimiter //
 create procedure set_known_good_state()
 begin
+    delete from chat_embedding;
+    alter table chat_embedding auto_increment = 1;
     delete from message;
     alter table message auto_increment = 1;
     delete from chat;
@@ -81,5 +92,8 @@ begin
     insert into message (chat_id, sender_id, body, created_at) values
         (1, 1, 'My laptop will not turn on.', '2026-01-01 09:01:00'),
         (1, 2, 'Hi, I can help with that.', '2026-01-01 09:02:00');
+
+    insert into chat_embedding (chat_id, content, embedding, created_at) values
+        (1, 'HARDWARE: Laptop will not turn on.', '[0.1, 0.2, 0.3]', '2026-01-01 09:05:00');
 end //
 delimiter ;

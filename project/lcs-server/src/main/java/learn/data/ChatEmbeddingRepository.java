@@ -10,4 +10,6 @@ public interface ChatEmbeddingRepository {
     List<ChatEmbedding> findAll() throws DataAccessException;
 
     ChatEmbedding create(ChatEmbedding chatEmbedding) throws DataAccessException;
+
+    boolean deleteByChatId(int chatId) throws DataAccessException;
 }

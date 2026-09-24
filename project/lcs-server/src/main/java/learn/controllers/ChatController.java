@@ -71,6 +71,11 @@ public class ChatController {
         return ResponseEntity.ok(result.getPayload().stream().map(ChatResponse::fromChat).toList());
     }
 
+    @PostMapping("/backfill-embeddings")
+    public ResponseEntity<?> backfillEmbeddings() throws DataAccessException {
+        return ResponseEntity.ok(chatEmbeddingService.backfillEmbeddings());
+    }
+
     @GetMapping
     public List<ChatResponse> findAll(@RequestParam(required = false) String username) throws DataAccessException {
         return chatService.findAll(username).stream().map(ChatResponse::fromChat).toList();

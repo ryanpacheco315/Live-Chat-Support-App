@@ -11,6 +11,7 @@ import learn.models.ChatStatus;
 import learn.models.Message;
 import learn.models.Problem;
 import learn.models.User;
+import learn.rag.ChatEmbeddingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,9 @@ class ChatServiceTest {
 
     @MockBean
     SimpMessagingTemplate messagingTemplate;
+
+    @MockBean
+    ChatEmbeddingService chatEmbeddingService;
 
     @Test
     void failsWhenCategoryMissing() throws DataAccessException {
@@ -201,6 +205,7 @@ class ChatServiceTest {
         verify(messageRepository).create(argThat(message ->
                 message.getChatId() == 1 && message.getSender() == null));
         verify(messagingTemplate, times(2)).convertAndSend(eq("/topic/chat/1"), any(Object.class));
+        verify(chatEmbeddingService, never()).embedChat(any());
     }
 
     @Test
@@ -219,6 +224,25 @@ class ChatServiceTest {
         assertTrue(actual.isSuccess());
         assertEquals(ChatStatus.CLOSED_SOLVED, actual.getPayload().getStatus());
         verify(chatRepository).close(1, ChatStatus.CLOSED_SOLVED);
+        verify(chatEmbeddingService).embedChat(closedChat);
+    }
+
+    @Test
+    void closeStillSucceedsWhenEmbeddingFails() throws DataAccessException {
+        User agent = TestDataHelper.existingAgent();
+        Chat closedChat = new Chat(1, TestDataHelper.existingClient(), agent, ChatStatus.CLOSED_SOLVED,
+                TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        when(chatRepository.close(1, ChatStatus.CLOSED_SOLVED)).thenReturn(true);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
+        when(chatRepository.findById(1))
+                .thenReturn(TestDataHelper.existingActiveChat())
+                .thenReturn(closedChat);
+        doThrow(new RuntimeException("embeddings API unavailable")).when(chatEmbeddingService).embedChat(any());
+
+        Result<Chat> actual = service.close(1, agent);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.CLOSED_SOLVED, actual.getPayload().getStatus());
     }
 
     @Test

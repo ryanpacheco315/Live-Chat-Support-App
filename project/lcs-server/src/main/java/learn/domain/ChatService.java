@@ -9,6 +9,7 @@ import learn.dtos.ChatResponse;
 import learn.dtos.MessageResponse;
 import learn.dtos.QueueUpdate;
 import learn.models.*;
+import learn.rag.ChatEmbeddingService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,15 +26,17 @@ public class ChatService {
     private final TimeRecordRepository timeRecordRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatEmbeddingService chatEmbeddingService;
 
     public ChatService(ChatRepository chatRepository, ProblemRepository problemRepository,
                         TimeRecordRepository timeRecordRepository, MessageRepository messageRepository,
-                        SimpMessagingTemplate messagingTemplate) {
+                        SimpMessagingTemplate messagingTemplate, ChatEmbeddingService chatEmbeddingService) {
         this.chatRepository = chatRepository;
         this.problemRepository = problemRepository;
         this.timeRecordRepository = timeRecordRepository;
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
+        this.chatEmbeddingService = chatEmbeddingService;
     }
 
     @Transactional
@@ -130,6 +133,14 @@ public class ChatService {
         String closerLabel = isClient ? "the client" : "the agent";
         Message systemMessage = messageRepository.create(
                 new Message(chatId, null, "Chat closed by " + closerLabel + ".", LocalDateTime.now()));
+
+        if (finalStatus == ChatStatus.CLOSED_SOLVED) {
+            try {
+                chatEmbeddingService.embedChat(closedChat);
+            } catch (Exception ex) {
+                // best-effort: a resolved chat should still close even if the embeddings API is down
+            }
+        }
 
         result.setPayload(closedChat);
         messagingTemplate.convertAndSend("/topic/chat/" + chatId, MessageResponse.fromMessage(systemMessage));

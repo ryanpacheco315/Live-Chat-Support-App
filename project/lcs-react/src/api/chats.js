@@ -33,6 +33,10 @@ export function resolveSelfServe(id) {
     return api.post(`/chats/${id}/resolve`);
 }
 
+export function getSuggestedReply(id) {
+    return api.get(`/chats/${id}/suggested-reply`);
+}
+
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }

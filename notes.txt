@@ -110,3 +110,11 @@ Uses the api from client that creates the fetch.
 23: rag/client-self-serve
 - while waiting for an agent, a client can click "Try self-serve help" right in the chat room and see similar already-resolved tickets, without a separate page or losing their place in the queue
 - checking is logged as a system message in the transcript, so an agent who later joins can see it was already tried
+
+24: rag/agent-assist
+- While an agent is in an active chat, a "Suggested reply" panel auto-loads in the chat room, synthesized from similar already-resolved tickets.
+- Retrieval reuses the same similarity search as client self-serve (GET /api/chats/{id}/similar) — the endpoint now also accepts the chat's assigned agent while it's ACTIVE, not just the client while WAITING.
+- New generation step: GET /api/chats/{id}/suggested-reply. New LlmClient interface + OpenAiLlmClient (gpt-4o-mini), turns the retrieved matches
+  into one short suggested reply instead of a raw list.
+- Skips the LLM call (and its cost) entirely when there are no similar tickets — nothing to summarize.
+- Reuses the existing EMBEDDING_API_KEY by default (same OpenAI account). No new signup needed. LLM_API_KEY env var available if you want to split it out to a separate key later.

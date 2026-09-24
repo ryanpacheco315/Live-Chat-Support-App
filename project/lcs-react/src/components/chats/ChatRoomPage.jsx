@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createStompClient } from "../../api/stomp";
-import { closeChat, getChat, getChatMessages, getSimilarChats, resolveSelfServe, startChat } from "../../api/chats";
+import {
+    closeChat,
+    getChat,
+    getChatMessages,
+    getSimilarChats,
+    getSuggestedReply,
+    resolveSelfServe,
+    startChat,
+} from "../../api/chats";
 import ChatMessageBubble from "./ChatMessageBubble";
 
 const CATEGORIES = ["HARDWARE", "SOFTWARE", "OTHER"];
@@ -89,6 +97,10 @@ function ChatRoomPage({ user }) {
     const [selfServeLoading, setSelfServeLoading] = useState(false);
     const [resolveError, setResolveError] = useState(null);
     const [resolveLoading, setResolveLoading] = useState(false);
+    const [suggestedReply, setSuggestedReply] = useState(null);
+    const [suggestError, setSuggestError] = useState(null);
+    const [suggestLoading, setSuggestLoading] = useState(false);
+    const [suggestOpen, setSuggestOpen] = useState(true);
     const clientRef = useRef(null);
     const messagesEndRef = useRef(null);
 
@@ -166,6 +178,29 @@ function ChatRoomPage({ user }) {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, intakeLog]);
+
+    useEffect(() => {
+        if (isNew || user?.role !== "AGENT" || !chat || chat.status !== "ACTIVE") return;
+        let isCancelled = false;
+
+        async function loadSuggestion() {
+            setSuggestLoading(true);
+            setSuggestError(null);
+            const result = await getSuggestedReply(chatId);
+            if (isCancelled) return;
+            setSuggestLoading(false);
+            if (result.ok) {
+                setSuggestedReply(result.payload.suggestion);
+            } else {
+                setSuggestError(result.payload?.[0] ?? "Suggestion is currently unavailable.");
+            }
+        }
+        loadSuggestion();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [isNew, chatId, user, chat]);
 
     function handleChange(event) {
         setBody(event.target.value);
@@ -326,6 +361,33 @@ function ChatRoomPage({ user }) {
 
                             {resolveError && <div className="text-danger mt-2">{resolveError}</div>}
                         </>
+                    )}
+                </div>
+            )}
+
+            {user?.role === "AGENT" && chat && chat.status === "ACTIVE" && (
+                <div className="card mb-3">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                        <span>Suggested reply (from similar past tickets)</span>
+                        <button
+                            className="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            onClick={() => setSuggestOpen((open) => !open)}
+                        >
+                            {suggestOpen ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                    {suggestOpen && (
+                        <div className="card-body">
+                            {suggestLoading && <p className="text-muted mb-0">Checking similar past tickets...</p>}
+                            {!suggestLoading && suggestError && <p className="text-danger mb-0">{suggestError}</p>}
+                            {!suggestLoading && !suggestError && suggestedReply && (
+                                <p className="mb-0">{suggestedReply}</p>
+                            )}
+                            {!suggestLoading && !suggestError && !suggestedReply && (
+                                <p className="text-muted mb-0">No similar past tickets found yet.</p>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

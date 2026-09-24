@@ -8,6 +8,7 @@ import learn.domain.UserService;
 import learn.dtos.ChatResponse;
 import learn.dtos.MessageResponse;
 import learn.dtos.SimilarChatResponse;
+import learn.dtos.SuggestedReplyResponse;
 import learn.models.Chat;
 import learn.models.ChatEmbedding;
 import learn.models.Problem;
@@ -203,6 +204,25 @@ public class ChatController {
             return ErrorResponse.build(result);
         }
         return ResponseEntity.ok(result.getPayload().stream().map(SimilarChatResponse::fromChatEmbedding).toList());
+    }
+
+    @GetMapping("/{id}/suggested-reply")
+    public ResponseEntity<?> suggestedReply(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Result<User> requesterResult = userService.findByUsername(authentication.getName());
+        if (!requesterResult.isSuccess()) {
+            return ErrorResponse.build(requesterResult);
+        }
+
+        Result<String> result = chatEmbeddingService.suggestReply(id, requesterResult.getPayload());
+        if (!result.isSuccess()) {
+            return ErrorResponse.build(result);
+        }
+        return ResponseEntity.ok(new SuggestedReplyResponse(result.getPayload()));
     }
 
     private boolean isParticipant(Chat chat, String username) {

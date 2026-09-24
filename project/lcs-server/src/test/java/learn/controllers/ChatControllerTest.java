@@ -463,4 +463,41 @@ class ChatControllerTest {
         mvc.perform(post("/api/chats/2/resolve"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void shouldGetSuggestedReply() throws Exception {
+        authenticateAsBob();
+        Result<User> agentResult = new Result<>();
+        agentResult.setPayload(TestDataHelper.existingAgent());
+        when(userService.findByUsername("bob")).thenReturn(agentResult);
+
+        Result<String> suggestResult = new Result<>();
+        suggestResult.setPayload("Try restarting the router.");
+        when(chatEmbeddingService.suggestReply(1, TestDataHelper.existingAgent())).thenReturn(suggestResult);
+
+        mvc.perform(get("/api/chats/1/suggested-reply"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.suggestion").value("Try restarting the router."));
+    }
+
+    @Test
+    void shouldRejectSuggestedReplyWhenNotAssignedAgent() throws Exception {
+        authenticateAsCarol();
+        Result<User> adminResult = new Result<>();
+        adminResult.setPayload(TestDataHelper.existingAdmin());
+        when(userService.findByUsername("carol")).thenReturn(adminResult);
+
+        Result<String> suggestResult = new Result<>();
+        suggestResult.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+        when(chatEmbeddingService.suggestReply(1, TestDataHelper.existingAdmin())).thenReturn(suggestResult);
+
+        mvc.perform(get("/api/chats/1/suggested-reply"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectSuggestedReplyWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/1/suggested-reply"))
+                .andExpect(status().isUnauthorized());
+    }
 }

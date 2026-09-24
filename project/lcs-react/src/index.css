@@ -1,17 +1,92 @@
-.chat-bubble-agent {
-  background-color: rgb(53, 205, 53);
+/* Theme palette — overrides Bootstrap's root design tokens where it reads
+   them from CSS variables (utilities, alerts, badges, cards, radius, links).
+   Bootstrap's precompiled .btn-* classes bake their colors into local
+   variables instead of reading the root ones, so those get their own
+   override below. */
+:root {
+  --bs-primary: #0f766e;
+  --bs-primary-rgb: 15, 118, 110;
+  --bs-primary-text-emphasis: #0b4f4a;
+  --bs-primary-bg-subtle: #dcf3f0;
+  --bs-primary-border-subtle: #8fd0c9;
+  --bs-link-color: #0f766e;
+  --bs-link-color-rgb: 15, 118, 110;
+  --bs-link-hover-color: #0b5e58;
+  --bs-link-hover-color-rgb: 11, 94, 88;
+  --bs-border-radius: 0.5rem;
+  --bs-border-radius-lg: 0.75rem;
+  --bs-border-radius-sm: 0.375rem;
+
+  --brand-navbar-bg: #0b4f4a;
+  --brand-bubble-agent-bg: #eef3f2;
+  --brand-bubble-agent-color: #212529;
 }
 
-.navbar-gray {
-  background-color: rgb(157, 162, 158);
+.btn-primary {
+  --bs-btn-bg: #0f766e;
+  --bs-btn-border-color: #0f766e;
+  --bs-btn-hover-bg: #0b5e58;
+  --bs-btn-hover-border-color: #0b5e58;
+  --bs-btn-active-bg: #094f4a;
+  --bs-btn-active-border-color: #094f4a;
+  --bs-btn-disabled-bg: #0f766e;
+  --bs-btn-disabled-border-color: #0f766e;
+  --bs-btn-focus-shadow-rgb: 15, 118, 110;
 }
 
-.nav-btn-active {
-  border-width: 3px;
+.btn-outline-primary {
+  --bs-btn-color: #0f766e;
+  --bs-btn-border-color: #0f766e;
+  --bs-btn-hover-bg: #0f766e;
+  --bs-btn-hover-border-color: #0f766e;
+  --bs-btn-active-bg: #0b5e58;
+  --bs-btn-active-border-color: #0b5e58;
 }
 
 .btn:hover {
   --bs-btn-hover-bg: var(--bs-btn-active-bg);
   --bs-btn-hover-border-color: var(--bs-btn-active-border-color);
   --bs-btn-hover-color: var(--bs-btn-active-color);
+}
+
+/* Soft shadow on cards instead of Bootstrap's flat, border-only default. */
+.card {
+  box-shadow: var(--bs-box-shadow-sm);
+}
+
+/* Navbar — dark brand background with Bootstrap's own light-on-dark text. */
+.navbar-gray {
+  background-color: var(--brand-navbar-bg);
+}
+
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Nav links get a pill-style active state instead of an outline + border. */
+.nav-btn-active {
+  border-width: 1px;
+  font-weight: 600;
+}
+
+/* Chat bubbles — the client's own messages use the brand color (bg-primary,
+   set directly in ChatMessageBubble.jsx); the other side gets a neutral,
+   conventional "incoming message" treatment instead of a clashing bright
+   green. */
+.chat-bubble-agent {
+  background-color: var(--brand-bubble-agent-bg);
+  color: var(--brand-bubble-agent-color);
+  border: 1px solid var(--bs-border-color);
+}
+
+/* Small circular icon badges used on the home page hero. */
+.hero-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }

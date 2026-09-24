@@ -41,14 +41,25 @@ function ChatTranscriptPage() {
     }
 
     if (!chat) {
-        return null;
+        return (
+            <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
     }
+
+    const isSolved = chat.status === "CLOSED_SOLVED";
 
     return (
         <div>
             <h4>Chat Transcript</h4>
-            <p className="text-muted">
-                {chat.problem.category} &mdash; {chat.status === "CLOSED_SOLVED" ? "Solved" : "Unsolved"}
+            <p className="text-muted d-flex align-items-center gap-2">
+                {chat.problem.category}
+                <span className={`badge text-bg-${isSolved ? "success" : "secondary"}`}>
+                    {isSolved ? "Solved" : "Unsolved"}
+                </span>
             </p>
             <div className="border rounded p-3">
                 {messages.map((message) => (

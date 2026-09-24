@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ChatRow from "./ChatRow";
-import { getAllChats, searchChats } from "../../api/chats";
+import { backfillEmbeddings, getAllChats, searchChats } from "../../api/chats";
 
 function AllChatsPage() {
     const [chats, setChats] = useState([]);
@@ -8,6 +8,9 @@ function AllChatsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchError, setSearchError] = useState(null);
     const [searching, setSearching] = useState(false);
+    const [backfillResult, setBackfillResult] = useState(null);
+    const [backfillError, setBackfillError] = useState(null);
+    const [backfilling, setBackfilling] = useState(false);
 
     async function loadChats(filterUsername) {
         const result = await getAllChats(filterUsername);
@@ -69,9 +72,53 @@ function AllChatsPage() {
         loadChats();
     }
 
+    async function handleBackfill() {
+        setBackfilling(true);
+        setBackfillError(null);
+        setBackfillResult(null);
+        const result = await backfillEmbeddings();
+        setBackfilling(false);
+
+        if (result.ok) {
+            setBackfillResult(result.payload);
+        } else {
+            setBackfillError(result.payload?.[0] ?? "Backfill is currently unavailable.");
+        }
+    }
+
     return (
         <>
-            <h4>All Chats</h4>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h4 className="mb-0">All Chats</h4>
+                <button
+                    className="btn btn-outline-primary btn-sm"
+                    type="button"
+                    onClick={handleBackfill}
+                    disabled={backfilling}
+                    title="Generate embeddings for any solved chat that doesn't have one yet (new data, or older chats closed before this feature existed)"
+                >
+                    {backfilling ? (
+                        <>
+                            <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
+                            Backfilling...
+                        </>
+                    ) : (
+                        <>
+                            <i className="bi bi-arrow-repeat me-1" aria-hidden="true" />
+                            Backfill Embeddings
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {backfillResult && (
+                <div className="alert alert-success">
+                    <i className="bi bi-check-circle me-1" aria-hidden="true" />
+                    Embedded {backfillResult.embedded} chat{backfillResult.embedded === 1 ? "" : "s"}.
+                    {backfillResult.failed > 0 && ` ${backfillResult.failed} failed — try again in a moment.`}
+                </div>
+            )}
+            {backfillError && <div className="alert alert-danger">{backfillError}</div>}
             <form className="d-flex mb-3" onSubmit={handleFilter}>
                 <input
                     className="form-control me-2"
@@ -81,6 +128,7 @@ function AllChatsPage() {
                     onChange={handleUsernameChange}
                 />
                 <button className="btn btn-primary me-2" type="submit">
+                    <i className="bi bi-funnel me-1" aria-hidden="true" />
                     Filter
                 </button>
                 <button className="btn btn-secondary" type="button" onClick={handleClear}>
@@ -97,7 +145,17 @@ function AllChatsPage() {
                     onChange={(event) => setSearchQuery(event.target.value)}
                 />
                 <button className="btn btn-primary me-2" type="submit" disabled={searching}>
-                    {searching ? "Searching..." : "Search"}
+                    {searching ? (
+                        <>
+                            <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
+                            Searching...
+                        </>
+                    ) : (
+                        <>
+                            <i className="bi bi-search me-1" aria-hidden="true" />
+                            Search
+                        </>
+                    )}
                 </button>
                 <button className="btn btn-secondary" type="button" onClick={handleSearchClear}>
                     Clear
@@ -105,22 +163,29 @@ function AllChatsPage() {
             </form>
             {searchError && <div className="alert alert-danger">{searchError}</div>}
 
-            <table className="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Client</th>
-                        <th>Agent</th>
-                        <th>Status</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {chats.map((chat) => (
-                        <ChatRow key={chat.id} chat={chat} />
-                    ))}
-                </tbody>
-            </table>
+            {chats.length === 0 ? (
+                <p className="text-muted">
+                    <i className="bi bi-inbox me-2" aria-hidden="true" />
+                    No chats found.
+                </p>
+            ) : (
+                <table className="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Agent</th>
+                            <th>Status</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {chats.map((chat) => (
+                            <ChatRow key={chat.id} chat={chat} />
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </>
     );
 }

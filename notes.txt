@@ -106,3 +106,7 @@ Uses the api from client that creates the fetch.
 22: rag/admin-chat-search
 - admins can now search past chats by meaning on the All Chats page. A second search box next to the existing username filter, e.g. "Wi-Fi connection problem" instead of an exact match
 - returns the 5 closest resolved chats by meaning, reusing the existing chat row display
+
+23: rag/client-self-serve
+- while waiting for an agent, a client can click "Try self-serve help" right in the chat room and see similar already-resolved tickets, without a separate page or losing their place in the queue
+- checking is logged as a system message in the transcript, so an agent who later joins can see it was already tried

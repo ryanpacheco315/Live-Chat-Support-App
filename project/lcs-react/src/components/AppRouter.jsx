@@ -4,8 +4,6 @@ import Layout from "./Layout";
 import Home from "./Home";
 import LoginPage from "./auth/LoginPage";
 import SignupPage from "./auth/SignupPage";
-import StartChatPage from "./chats/StartChatPage";
-import WaitingPage from "./chats/WaitingPage";
 import AgentQueuePage from "./chats/AgentQueuePage";
 import ChatRoomPage from "./chats/ChatRoomPage";
 import PastChatsPage from "./chats/PastChatsPage";
@@ -42,8 +40,6 @@ function AppRouter() {
                 { path: "/", element: <Home /> },
                 { path: "/login", element: <LoginPage setUser={setUser} /> },
                 { path: "/signup", element: <SignupPage /> },
-                { path: "/start-chat", element: <StartChatPage /> },
-                { path: "/waiting/:id", element: <WaitingPage /> },
                 { path: "/queue", element: <AgentQueuePage /> },
                 { path: "/chat/:id", element: <ChatRoomPage user={user} /> },
                 { path: "/past-chats", element: <PastChatsPage /> },

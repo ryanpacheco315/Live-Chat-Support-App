@@ -20,6 +20,13 @@ public class QueueUpdate {
         return update;
     }
 
+    public static QueueUpdate removed(int chatId) {
+        QueueUpdate update = new QueueUpdate();
+        update.type = "REMOVED";
+        update.chatId = chatId;
+        return update;
+    }
+
     public String getType() {
         return type;
     }

@@ -148,6 +148,58 @@ public class ChatService {
         return result;
     }
 
+    /**
+     * Client used the self-serve check while waiting and it actually solved their
+     * problem — unlike a normal client close (always CLOSED_UNSOLVED, since that means
+     * they gave up), this always produces CLOSED_SOLVED. Only usable while still WAITING,
+     * since once an agent joins the chat is a normal ACTIVE conversation and closes
+     * through the regular close() path instead.
+     */
+    @Transactional
+    public Result<Chat> resolveViaSelfServe(int chatId, User client) throws DataAccessException {
+        Result<Chat> result = new Result<>();
+
+        Chat chat = chatRepository.findById(chatId);
+        if (chat == null) {
+            result.addErrorMessage("Chat %s was not found.", ResultType.NOT_FOUND, chatId);
+            return result;
+        }
+
+        if (chat.getStatus() != ChatStatus.WAITING) {
+            result.addErrorMessage("Chat %s is not waiting for an agent.", ResultType.INVALID, chatId);
+            return result;
+        }
+
+        if (chat.getClient().getId() != client.getId()) {
+            result.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+            return result;
+        }
+
+        chatRepository.close(chatId, ChatStatus.CLOSED_SOLVED);
+
+        TimeRecord timeRecord = chat.getTimeRecord();
+        if (timeRecord != null) {
+            timeRecord.setClosedAt(LocalDateTime.now());
+            timeRecordRepository.update(timeRecord);
+        }
+
+        Chat closedChat = chatRepository.findById(chatId);
+        Message systemMessage = messageRepository.create(new Message(
+                chatId, null, "Chat closed by the client after finding a self-serve solution.", LocalDateTime.now()));
+
+        try {
+            chatEmbeddingService.embedChat(closedChat);
+        } catch (Exception ex) {
+            // best-effort, same as the regular close() path
+        }
+
+        result.setPayload(closedChat);
+        messagingTemplate.convertAndSend(QUEUE_TOPIC, QueueUpdate.removed(chatId));
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId, MessageResponse.fromMessage(systemMessage));
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId, ChatResponse.fromChat(closedChat));
+        return result;
+    }
+
     private void validate(Problem problem, Result<Chat> result) {
         if (problem == null) {
             result.addErrorMessage("Problem cannot be null.", ResultType.INVALID);

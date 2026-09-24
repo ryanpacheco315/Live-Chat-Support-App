@@ -112,4 +112,57 @@ class ChatEmbeddingServiceTest {
         assertEquals(ResultType.INVALID, actual.getType());
         assertTrue(actual.getErrorMessages().contains("Search is temporarily unavailable."));
     }
+
+    @Test
+    void shouldFindSimilarForOwnWaitingChat() throws DataAccessException {
+        Chat waitingChat = TestDataHelper.existingWaitingChat();
+        when(chatRepository.findById(2)).thenReturn(waitingChat);
+        when(embeddingClient.embed("SOFTWARE / EMAIL: Cannot log in to email.")).thenReturn(List.of(1.0, 0.0));
+        ChatEmbedding match = new ChatEmbedding(1, 1, "similar past issue", List.of(1.0, 0.0), LocalDateTime.now());
+        when(chatEmbeddingRepository.findAll()).thenReturn(List.of(match));
+        when(similaritySearchService.findMostSimilar(eq(List.of(1.0, 0.0)), anyList(), eq(5)))
+                .thenReturn(List.of(match));
+
+        Result<List<ChatEmbedding>> actual = service.findSimilarForChat(2, waitingChat.getClient());
+
+        assertTrue(actual.isSuccess());
+        assertEquals(List.of(match), actual.getPayload());
+        verify(messageRepository).create(argThat(message ->
+                message.getChatId() == 2 && message.getSender() == null
+                        && message.getBody().equals("Client checked for a self-serve solution.")));
+    }
+
+    @Test
+    void shouldRejectSimilarWhenNotTheClient() throws DataAccessException {
+        Chat waitingChat = TestDataHelper.existingWaitingChat();
+        when(chatRepository.findById(2)).thenReturn(waitingChat);
+
+        Result<List<ChatEmbedding>> actual = service.findSimilarForChat(2, TestDataHelper.existingAgent());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("You are not a participant in this chat."));
+        verify(embeddingClient, never()).embed(anyString());
+    }
+
+    @Test
+    void shouldRejectSimilarWhenChatNotWaiting() throws DataAccessException {
+        Chat activeChat = TestDataHelper.existingActiveChat();
+        when(chatRepository.findById(1)).thenReturn(activeChat);
+
+        Result<List<ChatEmbedding>> actual = service.findSimilarForChat(1, activeChat.getClient());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 1 is not waiting for an agent."));
+        verify(embeddingClient, never()).embed(anyString());
+    }
+
+    @Test
+    void shouldRejectSimilarWhenChatNotFound() throws DataAccessException {
+        when(chatRepository.findById(999)).thenReturn(null);
+
+        Result<List<ChatEmbedding>> actual = service.findSimilarForChat(999, TestDataHelper.existingClient());
+
+        assertEquals(ResultType.NOT_FOUND, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 999 was not found."));
+    }
 }

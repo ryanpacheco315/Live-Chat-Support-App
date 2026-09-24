@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createStompClient } from "../../api/stomp";
-import { closeChat, getChat, getChatMessages, startChat } from "../../api/chats";
+import { closeChat, getChat, getChatMessages, getSimilarChats, resolveSelfServe, startChat } from "../../api/chats";
 import ChatMessageBubble from "./ChatMessageBubble";
 
 const CATEGORIES = ["HARDWARE", "SOFTWARE", "OTHER"];
@@ -84,6 +84,11 @@ function ChatRoomPage({ user }) {
     const [closed, setClosed] = useState(false);
     const [closeError, setCloseError] = useState(null);
     const [body, setBody] = useState("");
+    const [selfServeResults, setSelfServeResults] = useState(null);
+    const [selfServeError, setSelfServeError] = useState(null);
+    const [selfServeLoading, setSelfServeLoading] = useState(false);
+    const [resolveError, setResolveError] = useState(null);
+    const [resolveLoading, setResolveLoading] = useState(false);
     const clientRef = useRef(null);
     const messagesEndRef = useRef(null);
 
@@ -188,6 +193,30 @@ function ChatRoomPage({ user }) {
         }
     }
 
+    async function handleSelfServeCheck() {
+        setSelfServeLoading(true);
+        setSelfServeError(null);
+        const result = await getSimilarChats(chatId);
+        setSelfServeLoading(false);
+        if (result.ok) {
+            setSelfServeResults(result.payload);
+        } else {
+            setSelfServeError(result.payload?.[0] ?? "Search is currently unavailable.");
+        }
+    }
+
+    async function handleSelfServeResolve() {
+        setResolveLoading(true);
+        setResolveError(null);
+        const result = await resolveSelfServe(chatId);
+        setResolveLoading(false);
+        if (result.ok) {
+            setClosed(true);
+        } else {
+            setResolveError(result.payload?.[0] ?? "Could not close this chat.");
+        }
+    }
+
     if (isNew) {
         return (
             <div className="p-3">
@@ -256,6 +285,48 @@ function ChatRoomPage({ user }) {
             {waiting && (
                 <div className="alert alert-secondary">
                     Waiting for an agent to join...
+                </div>
+            )}
+
+            {waiting && (
+                <div className="mb-3">
+                    <button
+                        className="btn btn-outline-secondary btn-sm"
+                        type="button"
+                        onClick={handleSelfServeCheck}
+                        disabled={selfServeLoading}
+                    >
+                        {selfServeLoading ? "Checking..." : "Try self-serve help"}
+                    </button>
+
+                    {selfServeError && <div className="text-danger mt-2">{selfServeError}</div>}
+
+                    {selfServeResults && selfServeResults.length === 0 && (
+                        <p className="text-muted mt-2 mb-0">No similar past chats found yet.</p>
+                    )}
+
+                    {selfServeResults && selfServeResults.length > 0 && (
+                        <>
+                            <ul className="list-group mt-2">
+                                {selfServeResults.map((match) => (
+                                    <li key={match.chatId} className="list-group-item">
+                                        {match.summary}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button
+                                className="btn btn-success btn-sm mt-2"
+                                type="button"
+                                onClick={handleSelfServeResolve}
+                                disabled={resolveLoading}
+                            >
+                                {resolveLoading ? "Closing..." : "This solved it — close my ticket"}
+                            </button>
+
+                            {resolveError && <div className="text-danger mt-2">{resolveError}</div>}
+                        </>
+                    )}
                 </div>
             )}
 

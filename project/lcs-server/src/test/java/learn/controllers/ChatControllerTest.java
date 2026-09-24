@@ -8,6 +8,7 @@ import learn.domain.Result;
 import learn.domain.ResultType;
 import learn.domain.UserService;
 import learn.models.Chat;
+import learn.models.ChatEmbedding;
 import learn.models.ChatStatus;
 import learn.models.Problem;
 import learn.models.User;
@@ -23,6 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -324,6 +326,46 @@ class ChatControllerTest {
     }
 
     @Test
+    void shouldFindSimilar() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        ChatEmbedding match = new ChatEmbedding(1, 1, "HARDWARE: similar past issue. Resolution: restart it.",
+                List.of(0.1, 0.2), LocalDateTime.now());
+        Result<List<ChatEmbedding>> similarResult = new Result<>();
+        similarResult.setPayload(List.of(match));
+        when(chatEmbeddingService.findSimilarForChat(2, TestDataHelper.existingClient())).thenReturn(similarResult);
+
+        mvc.perform(get("/api/chats/2/similar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].chatId").value(1))
+                .andExpect(jsonPath("$[0].summary").value("HARDWARE: similar past issue. Resolution: restart it."));
+    }
+
+    @Test
+    void shouldRejectSimilarWhenNotParticipant() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Result<List<ChatEmbedding>> similarResult = new Result<>();
+        similarResult.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+        when(chatEmbeddingService.findSimilarForChat(2, TestDataHelper.existingClient())).thenReturn(similarResult);
+
+        mvc.perform(get("/api/chats/2/similar"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectSimilarWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/2/similar"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldCloseAsClient() throws Exception {
         authenticateAsAlice();
         Result<User> clientResult = new Result<>();
@@ -380,6 +422,45 @@ class ChatControllerTest {
     @Test
     void shouldRejectCloseWhenNotAuthenticated() throws Exception {
         mvc.perform(post("/api/chats/1/close"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldResolveViaSelfServe() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Chat closedChat = new Chat(2, TestDataHelper.existingClient(), null,
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        Result<Chat> resolveResult = new Result<>();
+        resolveResult.setPayload(closedChat);
+        when(chatService.resolveViaSelfServe(2, TestDataHelper.existingClient())).thenReturn(resolveResult);
+
+        mvc.perform(post("/api/chats/2/resolve"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED_SOLVED"));
+    }
+
+    @Test
+    void shouldRejectResolveWhenNotWaiting() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Result<Chat> resolveResult = new Result<>();
+        resolveResult.addErrorMessage("Chat 1 is not waiting for an agent.", ResultType.INVALID);
+        when(chatService.resolveViaSelfServe(1, TestDataHelper.existingClient())).thenReturn(resolveResult);
+
+        mvc.perform(post("/api/chats/1/resolve"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectResolveWhenNotAuthenticated() throws Exception {
+        mvc.perform(post("/api/chats/2/resolve"))
                 .andExpect(status().isUnauthorized());
     }
 }

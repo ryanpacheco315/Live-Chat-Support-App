@@ -7,7 +7,9 @@ import learn.domain.Result;
 import learn.domain.UserService;
 import learn.dtos.ChatResponse;
 import learn.dtos.MessageResponse;
+import learn.dtos.SimilarChatResponse;
 import learn.models.Chat;
+import learn.models.ChatEmbedding;
 import learn.models.Problem;
 import learn.models.User;
 import learn.rag.ChatEmbeddingService;
@@ -143,6 +145,25 @@ public class ChatController {
         return ResponseEntity.ok(ChatResponse.fromChat(result.getPayload()));
     }
 
+    @PostMapping("/{id}/resolve")
+    public ResponseEntity<?> resolve(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Result<User> requesterResult = userService.findByUsername(authentication.getName());
+        if (!requesterResult.isSuccess()) {
+            return ErrorResponse.build(requesterResult);
+        }
+
+        Result<Chat> result = chatService.resolveViaSelfServe(id, requesterResult.getPayload());
+        if (!result.isSuccess()) {
+            return ErrorResponse.build(result);
+        }
+        return ResponseEntity.ok(ChatResponse.fromChat(result.getPayload()));
+    }
+
     @GetMapping("/{id}/messages")
     public ResponseEntity<?> findMessages(@PathVariable int id) throws DataAccessException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -163,6 +184,25 @@ public class ChatController {
                 .map(MessageResponse::fromMessage)
                 .toList();
         return ResponseEntity.ok(messages);
+    }
+
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<?> findSimilar(@PathVariable int id) throws DataAccessException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Result<User> requesterResult = userService.findByUsername(authentication.getName());
+        if (!requesterResult.isSuccess()) {
+            return ErrorResponse.build(requesterResult);
+        }
+
+        Result<List<ChatEmbedding>> result = chatEmbeddingService.findSimilarForChat(id, requesterResult.getPayload());
+        if (!result.isSuccess()) {
+            return ErrorResponse.build(result);
+        }
+        return ResponseEntity.ok(result.getPayload().stream().map(SimilarChatResponse::fromChatEmbedding).toList());
     }
 
     private boolean isParticipant(Chat chat, String username) {

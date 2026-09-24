@@ -40,7 +40,7 @@ function Nav({ user, setUser }) {
                         </NavLink>
                     )}
                     {user && user.role === "CLIENT" && (
-                        <NavLink to="/start-chat" className={navButtonClass("success")}>
+                        <NavLink to="/chat/new" className={navButtonClass("success")}>
                             Start a Chat
                         </NavLink>
                     )}

@@ -102,3 +102,7 @@ Uses the api from client that creates the fetch.
 21: rag/foundation
 - backend now has the shared plumbing every RAG feature will build on: a place to store embeddings for resolved chats, a client to generate them (not wired to a real key yet), and a similarity search to rank them
 - nothing user-facing yet — this is infrastructure the next three branches (admin search, client self-serve, agent-assist) will all reuse instead of rebuilding
+
+22: rag/admin-chat-search
+- admins can now search past chats by meaning on the All Chats page. A second search box next to the existing username filter, e.g. "Wi-Fi connection problem" instead of an exact match
+- returns the 5 closest resolved chats by meaning, reusing the existing chat row display

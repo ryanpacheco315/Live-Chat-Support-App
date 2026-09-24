@@ -7,6 +7,7 @@ import learn.domain.MessageService;
 import learn.domain.Result;
 import learn.domain.ResultType;
 import learn.domain.UserService;
+import learn.dtos.EmbeddingBackfillResponse;
 import learn.models.Chat;
 import learn.models.ChatEmbedding;
 import learn.models.ChatStatus;
@@ -499,5 +500,16 @@ class ChatControllerTest {
     void shouldRejectSuggestedReplyWhenNotAuthenticated() throws Exception {
         mvc.perform(get("/api/chats/1/suggested-reply"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldBackfillEmbeddings() throws Exception {
+        authenticateAsCarol();
+        when(chatEmbeddingService.backfillEmbeddings()).thenReturn(new EmbeddingBackfillResponse(3, 1));
+
+        mvc.perform(post("/api/chats/backfill-embeddings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.embedded").value(3))
+                .andExpect(jsonPath("$.failed").value(1));
     }
 }

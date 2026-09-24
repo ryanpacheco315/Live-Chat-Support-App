@@ -20,7 +20,8 @@ function WaitingChatRow({ chat, onClaimed }) {
             <td>{chat.problem.category}</td>
             <td>{chat.problem.description}</td>
             <td>
-                <button className="btn btn-primary" onClick={handleClaim}>
+                <button className="btn btn-primary btn-sm" onClick={handleClaim}>
+                    <i className="bi bi-hand-index-thumb me-1" aria-hidden="true" />
                     Claim
                 </button>
                 {error && <div className="text-danger">{error}</div>}

@@ -7,6 +7,7 @@ import learn.data.MessageRepository;
 import learn.data.TestDataHelper;
 import learn.domain.Result;
 import learn.domain.ResultType;
+import learn.dtos.EmbeddingBackfillResponse;
 import learn.models.Chat;
 import learn.models.ChatEmbedding;
 import learn.models.ChatStatus;
@@ -23,6 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -257,6 +259,58 @@ class ChatEmbeddingServiceTest {
         assertEquals(ResultType.INVALID, actual.getType());
         assertTrue(actual.getErrorMessages().contains("You are not a participant in this chat."));
         verify(llmClient, never()).generate(anyString());
+    }
+
+    @Test
+    void shouldBackfillEmbeddings() throws DataAccessException {
+        Chat needsEmbedding = new Chat(1, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        Chat alreadyEmbedded = new Chat(2, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        Chat placeholderEmbedding = new Chat(3, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        Chat stillWaiting = new Chat(4, TestDataHelper.existingClient(), null, ChatStatus.WAITING,
+                TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+
+        when(chatRepository.findAll(null))
+                .thenReturn(List.of(needsEmbedding, alreadyEmbedded, placeholderEmbedding, stillWaiting));
+        when(chatEmbeddingRepository.findByChatId(1)).thenReturn(null);
+        when(chatEmbeddingRepository.findByChatId(2))
+                .thenReturn(new ChatEmbedding(2, 2, "already embedded", List.of(1.0, 0.0), LocalDateTime.now()));
+        when(chatEmbeddingRepository.findByChatId(3))
+                .thenReturn(new ChatEmbedding(3, 3, "placeholder", List.of(), LocalDateTime.now()));
+        when(messageRepository.findByChatId(anyInt())).thenReturn(List.of());
+        when(embeddingClient.embed(anyString())).thenReturn(List.of(1.0, 0.0));
+
+        EmbeddingBackfillResponse actual = service.backfillEmbeddings();
+
+        assertEquals(2, actual.getEmbedded());
+        assertEquals(0, actual.getFailed());
+        verify(chatEmbeddingRepository).deleteByChatId(3);
+        verify(chatEmbeddingRepository, never()).deleteByChatId(1);
+        verify(chatEmbeddingRepository, never()).deleteByChatId(2);
+        verify(chatEmbeddingRepository, never()).findByChatId(4);
+        verify(chatEmbeddingRepository, times(2)).create(any());
+    }
+
+    @Test
+    void shouldCountFailuresDuringBackfillWithoutStoppingTheRest() throws DataAccessException {
+        Chat failsToEmbed = new Chat(1, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem1(), TestDataHelper.existingTimeRecord1());
+        Chat succeeds = new Chat(2, TestDataHelper.existingClient(), TestDataHelper.existingAgent(),
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+
+        when(chatRepository.findAll(null)).thenReturn(List.of(failsToEmbed, succeeds));
+        when(chatEmbeddingRepository.findByChatId(anyInt())).thenReturn(null);
+        when(messageRepository.findByChatId(anyInt())).thenReturn(List.of());
+        when(embeddingClient.embed(anyString()))
+                .thenThrow(new RuntimeException("embeddings API unavailable"))
+                .thenReturn(List.of(1.0, 0.0));
+
+        EmbeddingBackfillResponse actual = service.backfillEmbeddings();
+
+        assertEquals(1, actual.getEmbedded());
+        assertEquals(1, actual.getFailed());
     }
 
     @Test

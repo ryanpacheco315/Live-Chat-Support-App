@@ -7,15 +7,18 @@ import { createStompClient } from "../../api/stomp";
 function AgentQueuePage() {
     const navigate = useNavigate();
     const [chats, setChats] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let isCancelled = false;
 
         async function loadInitialChats() {
             const result = await getWaitingChats();
-            if (!isCancelled && result.ok) {
+            if (isCancelled) return;
+            if (result.ok) {
                 setChats(result.payload);
             }
+            setLoading(false);
         }
 
         loadInitialChats();
@@ -54,21 +57,38 @@ function AgentQueuePage() {
         <>
             <h4>Live Chats</h4>
 
-            <table className="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Client</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Claim</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {chats.map((chat) => (
-                        <WaitingChatRow key={chat.id} chat={chat} onClaimed={handleClaimed} />
-                    ))}
-                </tbody>
-            </table>
+            {loading && (
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            )}
+
+            {!loading && chats.length === 0 && (
+                <p className="text-muted">
+                    <i className="bi bi-cup-hot me-2" aria-hidden="true" />
+                    No one&apos;s waiting right now.
+                </p>
+            )}
+
+            {!loading && chats.length > 0 && (
+                <table className="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Claim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {chats.map((chat) => (
+                            <WaitingChatRow key={chat.id} chat={chat} onClaimed={handleClaimed} />
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </>
     );
 }

@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/chats/waiting").hasRole("AGENT")
                         .requestMatchers(HttpMethod.POST, "/api/chats/*/claim").hasRole("AGENT")
                         .requestMatchers(HttpMethod.GET, "/api/chats/search").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/chats/backfill-embeddings").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/chats").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/agents").hasRole("ADMIN")
                         .anyRequest().authenticated()

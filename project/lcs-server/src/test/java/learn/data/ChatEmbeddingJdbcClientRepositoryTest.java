@@ -52,4 +52,20 @@ class ChatEmbeddingJdbcClientRepositoryTest {
         assertEquals(actual, repository.findByChatId(2));
         assertEquals(2, repository.findAll().size());
     }
+
+    @Test
+    void shouldDeleteByChatId() throws DataAccessException {
+        boolean actual = repository.deleteByChatId(1);
+
+        assertTrue(actual);
+        assertNull(repository.findByChatId(1));
+        assertEquals(0, repository.findAll().size());
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeletingMissingChatId() throws DataAccessException {
+        boolean actual = repository.deleteByChatId(999);
+
+        assertFalse(actual);
+    }
 }

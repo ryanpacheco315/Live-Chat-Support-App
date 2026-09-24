@@ -288,13 +288,18 @@ function ChatRoomPage({ user }) {
                             onChange={(event) => setIntakeInput(event.target.value)}
                             placeholder={intakeStep === "subcategory" ? "Subcategory (optional)..." : "Describe the problem..."}
                         />
-                        <button className="btn btn-primary" type="submit">
-                            Send
+                        <button className="btn btn-primary" type="submit" aria-label="Send">
+                            <i className="bi bi-send-fill" aria-hidden="true" />
                         </button>
                     </form>
                 )}
 
-                {intakeError && <div className="text-danger pt-2">{intakeError}</div>}
+                {intakeError && (
+                    <div className="text-danger pt-2">
+                        <i className="bi bi-exclamation-triangle me-1" aria-hidden="true" />
+                        {intakeError}
+                    </div>
+                )}
             </div>
         );
     }
@@ -311,6 +316,7 @@ function ChatRoomPage({ user }) {
                 <h4>Live Chat</h4>
                 <div>
                     <button className="btn btn-danger" onClick={handleClose} disabled={closed || waiting}>
+                        <i className="bi bi-x-circle me-1" aria-hidden="true" />
                         Close Chat
                     </button>
                     {closeError && <div className="text-danger">{closeError}</div>}
@@ -318,7 +324,8 @@ function ChatRoomPage({ user }) {
             </div>
 
             {waiting && (
-                <div className="alert alert-secondary">
+                <div className="alert alert-secondary d-flex align-items-center">
+                    <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />
                     Waiting for an agent to join...
                 </div>
             )}
@@ -326,12 +333,22 @@ function ChatRoomPage({ user }) {
             {waiting && (
                 <div className="mb-3">
                     <button
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-primary btn-sm"
                         type="button"
                         onClick={handleSelfServeCheck}
                         disabled={selfServeLoading}
                     >
-                        {selfServeLoading ? "Checking..." : "Try self-serve help"}
+                        {selfServeLoading ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
+                                Checking...
+                            </>
+                        ) : (
+                            <>
+                                <i className="bi bi-lightbulb me-1" aria-hidden="true" />
+                                Try self-serve help
+                            </>
+                        )}
                     </button>
 
                     {selfServeError && <div className="text-danger mt-2">{selfServeError}</div>}
@@ -356,7 +373,17 @@ function ChatRoomPage({ user }) {
                                 onClick={handleSelfServeResolve}
                                 disabled={resolveLoading}
                             >
-                                {resolveLoading ? "Closing..." : "This solved it — close my ticket"}
+                                {resolveLoading ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-1" aria-hidden="true" />
+                                        Closing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="bi bi-check-circle me-1" aria-hidden="true" />
+                                        This solved it — close my ticket
+                                    </>
+                                )}
                             </button>
 
                             {resolveError && <div className="text-danger mt-2">{resolveError}</div>}
@@ -368,7 +395,10 @@ function ChatRoomPage({ user }) {
             {user?.role === "AGENT" && chat && chat.status === "ACTIVE" && (
                 <div className="card mb-3">
                     <div className="card-header d-flex justify-content-between align-items-center">
-                        <span>Suggested reply (from similar past tickets)</span>
+                        <span>
+                            <i className="bi bi-stars me-1" aria-hidden="true" />
+                            Suggested reply (from similar past tickets)
+                        </span>
                         <button
                             className="btn btn-sm btn-outline-secondary"
                             type="button"
@@ -393,7 +423,8 @@ function ChatRoomPage({ user }) {
             )}
 
             {closed && (
-                <div className="alert alert-secondary">
+                <div className="alert alert-secondary d-flex align-items-center">
+                    <i className="bi bi-check2-circle me-2" aria-hidden="true" />
                     This chat has been closed. Returning you shortly...
                 </div>
             )}
@@ -416,8 +447,13 @@ function ChatRoomPage({ user }) {
                     placeholder={waiting ? "Waiting for an agent to join..." : "Type a message..."}
                     disabled={closed || waiting}
                 />
-                <button className="btn btn-primary" type="submit" disabled={closed || waiting}>
-                    Send
+                <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={closed || waiting}
+                    aria-label="Send"
+                >
+                    <i className="bi bi-send-fill" aria-hidden="true" />
                 </button>
             </form>
         </div>

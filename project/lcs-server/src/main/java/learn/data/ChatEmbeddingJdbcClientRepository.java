@@ -64,4 +64,11 @@ public class ChatEmbeddingJdbcClientRepository implements ChatEmbeddingRepositor
         chatEmbedding.setId(keyHolder.getKey().intValue());
         return chatEmbedding;
     }
+
+    @Override
+    public boolean deleteByChatId(int chatId) throws DataAccessException {
+        return jdbcClient.sql("delete from chat_embedding where chat_id = ?")
+                .param(chatId)
+                .update() > 0;
+    }
 }

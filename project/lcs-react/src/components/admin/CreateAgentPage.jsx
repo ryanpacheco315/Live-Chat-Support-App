@@ -27,62 +27,81 @@ function CreateAgentPage() {
     }
 
     return (
-        <>
-            <h4>Create an Agent</h4>
-            <div className="row">
-                <div className="col-3" />
+        <div className="row">
+            <div className="col-md-3" />
 
-                <form className="col-6" onSubmit={handleSubmit}>
-                    {successMessage && <p className="text-success">{successMessage}</p>}
-                    {errors.length > 0 && (
-                        <ul>
-                            {errors.map((error) => (
-                                <li key={error}>{error}</li>
-                            ))}
-                        </ul>
-                    )}
+            <div className="col-md-6">
+                <h4 className="mb-3">Create an Agent</h4>
+                <div className="card">
+                    <div className="card-body">
+                        <form onSubmit={handleSubmit}>
+                            {successMessage && (
+                                <div className="alert alert-success d-flex align-items-center">
+                                    <i className="bi bi-check-circle me-2" aria-hidden="true" />
+                                    {successMessage}
+                                </div>
+                            )}
+                            {errors.length > 0 && (
+                                <ul className="alert alert-danger mb-3">
+                                    {errors.map((error) => (
+                                        <li key={error}>{error}</li>
+                                    ))}
+                                </ul>
+                            )}
 
-                    <div className="form-control">
-                        <label htmlFor="fullName-input">Full name: </label>
-                        <input
-                            type="text"
-                            id="fullName-input"
-                            name="fullName"
-                            onChange={handleChange}
-                            value={user.fullName}
-                        />
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="fullName-input">
+                                    Full name
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    id="fullName-input"
+                                    name="fullName"
+                                    onChange={handleChange}
+                                    value={user.fullName}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="username-input">
+                                    Username
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    id="username-input"
+                                    name="username"
+                                    onChange={handleChange}
+                                    value={user.username}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="password-input">
+                                    Password
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="password"
+                                    id="password-input"
+                                    name="password"
+                                    onChange={handleChange}
+                                    value={user.password}
+                                />
+                            </div>
+
+                            <button className="btn btn-primary" type="submit">
+                                <i className="bi bi-person-plus me-1" aria-hidden="true" />
+                                Create Agent
+                            </button>
+                        </form>
                     </div>
-
-                    <div className="form-control">
-                        <label htmlFor="username-input">Username: </label>
-                        <input
-                            type="text"
-                            id="username-input"
-                            name="username"
-                            onChange={handleChange}
-                            value={user.username}
-                        />
-                    </div>
-
-                    <div className="form-control">
-                        <label htmlFor="password-input">Password: </label>
-                        <input
-                            type="password"
-                            id="password-input"
-                            name="password"
-                            onChange={handleChange}
-                            value={user.password}
-                        />
-                    </div>
-
-                    <div className="form-control">
-                        <button type="submit">Create Agent</button>
-                    </div>
-                </form>
-
-                <div className="col-3" />
+                </div>
             </div>
-        </>
+
+            <div className="col-md-3" />
+        </div>
     );
 }
 

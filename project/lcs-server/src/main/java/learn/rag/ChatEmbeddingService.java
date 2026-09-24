@@ -4,6 +4,7 @@ import learn.data.ChatEmbeddingRepository;
 import learn.data.ChatRepository;
 import learn.data.DataAccessException;
 import learn.data.MessageRepository;
+import learn.dtos.EmbeddingBackfillResponse;
 import learn.domain.Result;
 import learn.domain.ResultType;
 import learn.models.Chat;
@@ -47,6 +48,43 @@ public class ChatEmbeddingService {
         String content = buildContent(chat, transcript);
         List<Double> vector = embeddingClient.embed(content);
         chatEmbeddingRepository.create(new ChatEmbedding(chat.getId(), content, vector, LocalDateTime.now()));
+    }
+
+    /**
+     * Maintenance operation, not part of the normal close-a-chat flow: generates real
+     * embeddings for every already-CLOSED_SOLVED chat that doesn't have a real one yet.
+     * Covers two cases — chats with no chat_embedding row at all (e.g. closed while the
+     * embeddings API key wasn't configured), and chats with a placeholder empty-vector row
+     * (seed data, which only exercises the storage path). Safe to run repeatedly: chats that
+     * already have a real embedding are left untouched. Best-effort per chat, so one failure
+     * doesn't stop the rest of the batch.
+     */
+    public EmbeddingBackfillResponse backfillEmbeddings() throws DataAccessException {
+        List<Chat> closedSolvedChats = chatRepository.findAll(null).stream()
+                .filter(chat -> chat.getStatus() == ChatStatus.CLOSED_SOLVED)
+                .toList();
+
+        int embedded = 0;
+        int failed = 0;
+        for (Chat chat : closedSolvedChats) {
+            ChatEmbedding existing = chatEmbeddingRepository.findByChatId(chat.getId());
+            if (existing != null && !existing.getEmbedding().isEmpty()) {
+                continue;
+            }
+
+            if (existing != null) {
+                chatEmbeddingRepository.deleteByChatId(chat.getId());
+            }
+
+            try {
+                embedChat(chat);
+                embedded++;
+            } catch (Exception ex) {
+                failed++;
+            }
+        }
+
+        return new EmbeddingBackfillResponse(embedded, failed);
     }
 
     public Result<List<Chat>> search(String query) throws DataAccessException {

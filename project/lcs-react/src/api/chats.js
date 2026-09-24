@@ -37,6 +37,10 @@ export function getSuggestedReply(id) {
     return api.get(`/chats/${id}/suggested-reply`);
 }
 
+export function backfillEmbeddings() {
+    return api.post("/chats/backfill-embeddings");
+}
+
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }

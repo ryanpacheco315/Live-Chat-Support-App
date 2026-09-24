@@ -28,70 +28,77 @@ function SignupPage() {
     }
 
     return (
-        <>
-            <h4>Sign up for an account</h4>
-            <div className="row">
-                <div className="col-3" />
+        <div className="row">
+            <div className="col-md-3" />
 
-                <form className="col-6" onSubmit={handleSubmit}>
-                    {errors.length > 0 && (
-                        <ul className="alert alert-danger">
-                            {errors.map((error) => (
-                                <li key={error}>{error}</li>
-                            ))}
-                        </ul>
-                    )}
+            <div className="col-md-6">
+                <h4 className="mb-3 text-center">
+                    <i className="bi bi-person-plus me-2" aria-hidden="true" />
+                    Sign up for an account
+                </h4>
+                <div className="card">
+                    <div className="card-body">
+                        <form onSubmit={handleSubmit}>
+                            {errors.length > 0 && (
+                                <ul className="alert alert-danger">
+                                    {errors.map((error) => (
+                                        <li key={error}>{error}</li>
+                                    ))}
+                                </ul>
+                            )}
 
-                    <div className="mb-3">
-                        <label className="form-label" htmlFor="fullName-input">
-                            Full name
-                        </label>
-                        <input
-                            className="form-control"
-                            type="text"
-                            id="fullName-input"
-                            name="fullName"
-                            onChange={handleChange}
-                            value={user.fullName}
-                        />
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="fullName-input">
+                                    Full name
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    id="fullName-input"
+                                    name="fullName"
+                                    onChange={handleChange}
+                                    value={user.fullName}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="username-input">
+                                    Username
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    id="username-input"
+                                    name="username"
+                                    onChange={handleChange}
+                                    value={user.username}
+                                />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="password-input">
+                                    Password
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="password"
+                                    id="password-input"
+                                    name="password"
+                                    onChange={handleChange}
+                                    value={user.password}
+                                />
+                            </div>
+
+                            <button className="btn btn-primary w-100" type="submit">
+                                Sign up
+                            </button>
+                        </form>
                     </div>
-
-                    <div className="mb-3">
-                        <label className="form-label" htmlFor="username-input">
-                            Username
-                        </label>
-                        <input
-                            className="form-control"
-                            type="text"
-                            id="username-input"
-                            name="username"
-                            onChange={handleChange}
-                            value={user.username}
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label" htmlFor="password-input">
-                            Password
-                        </label>
-                        <input
-                            className="form-control"
-                            type="password"
-                            id="password-input"
-                            name="password"
-                            onChange={handleChange}
-                            value={user.password}
-                        />
-                    </div>
-
-                    <button className="btn btn-primary" type="submit">
-                        Sign up!
-                    </button>
-                </form>
-
-                <div className="col-3" />
+                </div>
             </div>
-        </>
+
+            <div className="col-md-3" />
+        </div>
     );
 }
 

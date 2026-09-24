@@ -91,3 +91,10 @@ Uses the api from client that creates the fetch.
 - fixed login, signup, and intake forms. Inputs and buttons had no bootstrap styling at all before.
 - chat rooms agent bubble is lime green, messages scroll in a fixed sized box while the input stays pinned.
 - added an intro on the home page explaining the program and to not leave the chat early.
+
+---------------------------------- POST Capstone ----------------------------------
+
+20: structural/chat-room-intake
+- starting a chat is one continuous experience now — a bot collects the problem category, subcategory, and description in the chat room.
+- once submitted, the client stays in a chat room waiting for an agent (message box is disabled, no separate waiting page)
+  and it unlocks automatically the moment an agent joins.

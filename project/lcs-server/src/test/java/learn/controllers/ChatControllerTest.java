@@ -8,6 +8,7 @@ import learn.domain.Result;
 import learn.domain.ResultType;
 import learn.domain.UserService;
 import learn.models.Chat;
+import learn.models.ChatEmbedding;
 import learn.models.ChatStatus;
 import learn.models.Problem;
 import learn.models.User;
@@ -23,6 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -320,6 +322,46 @@ class ChatControllerTest {
     @Test
     void shouldRejectMessagesWhenNotAuthenticated() throws Exception {
         mvc.perform(get("/api/chats/1/messages"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldFindSimilar() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        ChatEmbedding match = new ChatEmbedding(1, 1, "HARDWARE: similar past issue. Resolution: restart it.",
+                List.of(0.1, 0.2), LocalDateTime.now());
+        Result<List<ChatEmbedding>> similarResult = new Result<>();
+        similarResult.setPayload(List.of(match));
+        when(chatEmbeddingService.findSimilarForChat(2, TestDataHelper.existingClient())).thenReturn(similarResult);
+
+        mvc.perform(get("/api/chats/2/similar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].chatId").value(1))
+                .andExpect(jsonPath("$[0].summary").value("HARDWARE: similar past issue. Resolution: restart it."));
+    }
+
+    @Test
+    void shouldRejectSimilarWhenNotParticipant() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Result<List<ChatEmbedding>> similarResult = new Result<>();
+        similarResult.addErrorMessage("You are not a participant in this chat.", ResultType.INVALID);
+        when(chatEmbeddingService.findSimilarForChat(2, TestDataHelper.existingClient())).thenReturn(similarResult);
+
+        mvc.perform(get("/api/chats/2/similar"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectSimilarWhenNotAuthenticated() throws Exception {
+        mvc.perform(get("/api/chats/2/similar"))
                 .andExpect(status().isUnauthorized());
     }
 

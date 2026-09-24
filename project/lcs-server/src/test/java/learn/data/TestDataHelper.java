@@ -3,6 +3,7 @@ package learn.data;
 import learn.models.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TestDataHelper {
     public static User existingClient() {
@@ -96,5 +97,21 @@ public class TestDataHelper {
 
     public static Message systemMessageToCreate() {
         return new Message(2, null, "An agent has joined the chat.", LocalDateTime.of(2026, 1, 2, 11, 0));
+    }
+
+    public static ChatEmbedding existingChatEmbedding1() {
+        return new ChatEmbedding(1, 1, "HARDWARE: Laptop will not turn on.",
+                List.of(0.1, 0.2, 0.3), LocalDateTime.of(2026, 1, 1, 9, 5));
+    }
+
+    public static ChatEmbedding chatEmbeddingToCreate() {
+        return new ChatEmbedding(2, "SOFTWARE: Cannot log in to email. Resolution: Reset the password.",
+                List.of(0.4, 0.5, 0.6), LocalDateTime.of(2026, 1, 3, 8, 0));
+    }
+
+    public static ChatEmbedding chatEmbeddingAfterCreate() {
+        ChatEmbedding chatEmbedding = chatEmbeddingToCreate();
+        chatEmbedding.setId(2);
+        return chatEmbedding;
     }
 }

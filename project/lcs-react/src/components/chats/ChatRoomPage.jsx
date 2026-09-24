@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createStompClient } from "../../api/stomp";
-import { closeChat, getChat, getChatMessages, getSimilarChats, startChat } from "../../api/chats";
+import { closeChat, getChat, getChatMessages, getSimilarChats, resolveSelfServe, startChat } from "../../api/chats";
 import ChatMessageBubble from "./ChatMessageBubble";
 
 const CATEGORIES = ["HARDWARE", "SOFTWARE", "OTHER"];
@@ -87,6 +87,8 @@ function ChatRoomPage({ user }) {
     const [selfServeResults, setSelfServeResults] = useState(null);
     const [selfServeError, setSelfServeError] = useState(null);
     const [selfServeLoading, setSelfServeLoading] = useState(false);
+    const [resolveError, setResolveError] = useState(null);
+    const [resolveLoading, setResolveLoading] = useState(false);
     const clientRef = useRef(null);
     const messagesEndRef = useRef(null);
 
@@ -203,6 +205,18 @@ function ChatRoomPage({ user }) {
         }
     }
 
+    async function handleSelfServeResolve() {
+        setResolveLoading(true);
+        setResolveError(null);
+        const result = await resolveSelfServe(chatId);
+        setResolveLoading(false);
+        if (result.ok) {
+            setClosed(true);
+        } else {
+            setResolveError(result.payload?.[0] ?? "Could not close this chat.");
+        }
+    }
+
     if (isNew) {
         return (
             <div className="p-3">
@@ -292,13 +306,26 @@ function ChatRoomPage({ user }) {
                     )}
 
                     {selfServeResults && selfServeResults.length > 0 && (
-                        <ul className="list-group mt-2">
-                            {selfServeResults.map((match) => (
-                                <li key={match.chatId} className="list-group-item">
-                                    {match.summary}
-                                </li>
-                            ))}
-                        </ul>
+                        <>
+                            <ul className="list-group mt-2">
+                                {selfServeResults.map((match) => (
+                                    <li key={match.chatId} className="list-group-item">
+                                        {match.summary}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button
+                                className="btn btn-success btn-sm mt-2"
+                                type="button"
+                                onClick={handleSelfServeResolve}
+                                disabled={resolveLoading}
+                            >
+                                {resolveLoading ? "Closing..." : "This solved it — close my ticket"}
+                            </button>
+
+                            {resolveError && <div className="text-danger mt-2">{resolveError}</div>}
+                        </>
                     )}
                 </div>
             )}

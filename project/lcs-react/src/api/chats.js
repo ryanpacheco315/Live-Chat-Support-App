@@ -29,6 +29,10 @@ export function getSimilarChats(id) {
     return api.get(`/chats/${id}/similar`);
 }
 
+export function resolveSelfServe(id) {
+    return api.post(`/chats/${id}/resolve`);
+}
+
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }

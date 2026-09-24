@@ -424,4 +424,43 @@ class ChatControllerTest {
         mvc.perform(post("/api/chats/1/close"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void shouldResolveViaSelfServe() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Chat closedChat = new Chat(2, TestDataHelper.existingClient(), null,
+                ChatStatus.CLOSED_SOLVED, TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        Result<Chat> resolveResult = new Result<>();
+        resolveResult.setPayload(closedChat);
+        when(chatService.resolveViaSelfServe(2, TestDataHelper.existingClient())).thenReturn(resolveResult);
+
+        mvc.perform(post("/api/chats/2/resolve"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED_SOLVED"));
+    }
+
+    @Test
+    void shouldRejectResolveWhenNotWaiting() throws Exception {
+        authenticateAsAlice();
+        Result<User> clientResult = new Result<>();
+        clientResult.setPayload(TestDataHelper.existingClient());
+        when(userService.findByUsername("alice")).thenReturn(clientResult);
+
+        Result<Chat> resolveResult = new Result<>();
+        resolveResult.addErrorMessage("Chat 1 is not waiting for an agent.", ResultType.INVALID);
+        when(chatService.resolveViaSelfServe(1, TestDataHelper.existingClient())).thenReturn(resolveResult);
+
+        mvc.perform(post("/api/chats/1/resolve"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectResolveWhenNotAuthenticated() throws Exception {
+        mvc.perform(post("/api/chats/2/resolve"))
+                .andExpect(status().isUnauthorized());
+    }
 }

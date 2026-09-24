@@ -277,4 +277,82 @@ class ChatServiceTest {
         assertTrue(actual.getErrorMessages().contains("You are not a participant in this chat."));
         verify(chatRepository, never()).close(anyInt(), any());
     }
+
+    @Test
+    void resolveViaSelfServeHappyPath() throws DataAccessException {
+        Chat waitingChat = TestDataHelper.existingWaitingChat();
+        User client = waitingChat.getClient();
+        Chat closedChat = new Chat(2, client, null, ChatStatus.CLOSED_SOLVED,
+                TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        when(chatRepository.close(2, ChatStatus.CLOSED_SOLVED)).thenReturn(true);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
+        when(chatRepository.findById(2))
+                .thenReturn(waitingChat)
+                .thenReturn(closedChat);
+
+        Result<Chat> actual = service.resolveViaSelfServe(2, client);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.CLOSED_SOLVED, actual.getPayload().getStatus());
+        verify(chatRepository).close(2, ChatStatus.CLOSED_SOLVED);
+        verify(timeRecordRepository).update(argThat(tr -> tr.getClosedAt() != null));
+        verify(messageRepository).create(argThat(message ->
+                message.getChatId() == 2 && message.getSender() == null));
+        verify(chatEmbeddingService).embedChat(closedChat);
+        verify(messagingTemplate, times(2)).convertAndSend(eq("/topic/chat/2"), any(Object.class));
+    }
+
+    @Test
+    void resolveViaSelfServeStillSucceedsWhenEmbeddingFails() throws DataAccessException {
+        Chat waitingChat = TestDataHelper.existingWaitingChat();
+        User client = waitingChat.getClient();
+        Chat closedChat = new Chat(2, client, null, ChatStatus.CLOSED_SOLVED,
+                TestDataHelper.existingProblem2(), TestDataHelper.existingTimeRecord2());
+        when(chatRepository.close(2, ChatStatus.CLOSED_SOLVED)).thenReturn(true);
+        when(messageRepository.create(any(Message.class))).thenReturn(TestDataHelper.systemMessageToCreate());
+        when(chatRepository.findById(2))
+                .thenReturn(waitingChat)
+                .thenReturn(closedChat);
+        doThrow(new RuntimeException("embeddings API unavailable")).when(chatEmbeddingService).embedChat(any());
+
+        Result<Chat> actual = service.resolveViaSelfServe(2, client);
+
+        assertTrue(actual.isSuccess());
+        assertEquals(ChatStatus.CLOSED_SOLVED, actual.getPayload().getStatus());
+    }
+
+    @Test
+    void resolveViaSelfServeFailsWhenNotFound() throws DataAccessException {
+        when(chatRepository.findById(999)).thenReturn(null);
+
+        Result<Chat> actual = service.resolveViaSelfServe(999, TestDataHelper.existingClient());
+
+        assertEquals(ResultType.NOT_FOUND, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 999 was not found."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
+
+    @Test
+    void resolveViaSelfServeFailsWhenNotWaiting() throws DataAccessException {
+        Chat activeChat = TestDataHelper.existingActiveChat();
+        when(chatRepository.findById(1)).thenReturn(activeChat);
+
+        Result<Chat> actual = service.resolveViaSelfServe(1, activeChat.getClient());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("Chat 1 is not waiting for an agent."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
+
+    @Test
+    void resolveViaSelfServeFailsWhenNotClient() throws DataAccessException {
+        Chat waitingChat = TestDataHelper.existingWaitingChat();
+        when(chatRepository.findById(2)).thenReturn(waitingChat);
+
+        Result<Chat> actual = service.resolveViaSelfServe(2, TestDataHelper.existingAgent());
+
+        assertEquals(ResultType.INVALID, actual.getType());
+        assertTrue(actual.getErrorMessages().contains("You are not a participant in this chat."));
+        verify(chatRepository, never()).close(anyInt(), any());
+    }
 }

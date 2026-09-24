@@ -25,6 +25,10 @@ export function getChat(id) {
     return api.get(`/chats/${id}`);
 }
 
+export function getSimilarChats(id) {
+    return api.get(`/chats/${id}/similar`);
+}
+
 export function claimChat(id) {
     return api.post(`/chats/${id}/claim`);
 }

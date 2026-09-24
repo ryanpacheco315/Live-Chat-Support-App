@@ -11,6 +11,7 @@ import learn.models.Chat;
 import learn.models.ChatStatus;
 import learn.models.Problem;
 import learn.models.User;
+import learn.rag.ChatEmbeddingService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,9 @@ class ChatControllerTest {
 
     @MockBean
     UserService userService;
+
+    @MockBean
+    ChatEmbeddingService chatEmbeddingService;
 
     @AfterEach
     void clearSecurityContext() {
@@ -156,6 +160,30 @@ class ChatControllerTest {
         mvc.perform(get("/api/chats").param("username", "bob"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void shouldSearch() throws Exception {
+        authenticateAsCarol();
+        Result<List<Chat>> searchResult = new Result<>();
+        searchResult.setPayload(List.of(TestDataHelper.existingActiveChat()));
+        when(chatEmbeddingService.search("wifi problem")).thenReturn(searchResult);
+
+        mvc.perform(get("/api/chats/search").param("q", "wifi problem"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].client.password").doesNotExist());
+    }
+
+    @Test
+    void shouldRejectSearchWhenUnavailable() throws Exception {
+        authenticateAsCarol();
+        Result<List<Chat>> searchResult = new Result<>();
+        searchResult.addErrorMessage("Search is temporarily unavailable.", ResultType.INVALID);
+        when(chatEmbeddingService.search("wifi problem")).thenReturn(searchResult);
+
+        mvc.perform(get("/api/chats/search").param("q", "wifi problem"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

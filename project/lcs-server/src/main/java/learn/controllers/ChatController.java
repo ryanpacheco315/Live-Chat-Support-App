@@ -10,6 +10,7 @@ import learn.dtos.MessageResponse;
 import learn.models.Chat;
 import learn.models.Problem;
 import learn.models.User;
+import learn.rag.ChatEmbeddingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,11 +25,14 @@ public class ChatController {
     private final ChatService chatService;
     private final MessageService messageService;
     private final UserService userService;
+    private final ChatEmbeddingService chatEmbeddingService;
 
-    public ChatController(ChatService chatService, MessageService messageService, UserService userService) {
+    public ChatController(ChatService chatService, MessageService messageService, UserService userService,
+                           ChatEmbeddingService chatEmbeddingService) {
         this.chatService = chatService;
         this.messageService = messageService;
         this.userService = userService;
+        this.chatEmbeddingService = chatEmbeddingService;
     }
 
     @PostMapping
@@ -53,6 +57,15 @@ public class ChatController {
     @GetMapping("/waiting")
     public List<ChatResponse> findWaiting() throws DataAccessException {
         return chatService.findWaiting().stream().map(ChatResponse::fromChat).toList();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam String q) throws DataAccessException {
+        Result<List<Chat>> result = chatEmbeddingService.search(q);
+        if (!result.isSuccess()) {
+            return ErrorResponse.build(result);
+        }
+        return ResponseEntity.ok(result.getPayload().stream().map(ChatResponse::fromChat).toList());
     }
 
     @GetMapping

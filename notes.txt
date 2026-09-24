@@ -98,3 +98,7 @@ Uses the api from client that creates the fetch.
 - starting a chat is one continuous experience now — a bot collects the problem category, subcategory, and description in the chat room.
 - once submitted, the client stays in a chat room waiting for an agent (message box is disabled, no separate waiting page)
   and it unlocks automatically the moment an agent joins.
+
+21: rag/foundation
+- backend now has the shared plumbing every RAG feature will build on: a place to store embeddings for resolved chats, a client to generate them (not wired to a real key yet), and a similarity search to rank them
+- nothing user-facing yet — this is infrastructure the next three branches (admin search, client self-serve, agent-assist) will all reuse instead of rebuilding

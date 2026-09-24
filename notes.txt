@@ -118,3 +118,14 @@ Uses the api from client that creates the fetch.
   into one short suggested reply instead of a raw list.
 - Skips the LLM call (and its cost) entirely when there are no similar tickets — nothing to summarize.
 - Reuses the existing EMBEDDING_API_KEY by default (same OpenAI account). No new signup needed. LLM_API_KEY env var available if you want to split it out to a separate key later.
+
+25: polish/visual-refresh
+- New teal-based color palette (was stock Bootstrap blue/gray), softer border-radius app-wide, soft card shadows. Overrides done at the root
+  CSS-variable level plus targeted .btn-primary overrides, since Bootstrap's precompiled CSS bakes button colors as literal values rather than reading root variables.
+- Added bootstrap-icons; icons on nav links and every action button (send, close, claim, log out, etc.).
+- Status badges (colored pills) replace plain text in past-chat cards, the admin chat table, and the transcript page.
+- Loading spinners and friendlier empty-state copy on past chats, the agent queue, and admin all-chats (previously blank flashes / bare tables).
+- Dark teal navbar using Bootstrap's built-in navbar-dark for correct text contrast; cleaner active-tab styling.
+- Home page hero section instead of stacked plain paragraphs.
+- Bug fix: CreateAgentPage's form was rendering as unstyled native browser inputs (misused .form-control as a div wrapper instead of on the inputs
+  themselves) — fixed and brought in line with the Login/Signup layout, which also got a card-wrapped treatment.

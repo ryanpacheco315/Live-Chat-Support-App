@@ -46,6 +46,7 @@ function AppRouter() {
                 { path: "/past-chats/:id", element: <ChatTranscriptPage /> },
                 { path: "/admin/create-agent", element: <CreateAgentPage /> },
                 { path: "/admin/chats", element: <AllChatsPage /> },
+                { path: "/admin/chats/:id", element: <ChatTranscriptPage /> },
             ],
         },
     ];

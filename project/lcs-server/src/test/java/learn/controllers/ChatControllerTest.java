@@ -261,14 +261,22 @@ class ChatControllerTest {
 
     @Test
     void shouldRejectFindByIdForNonParticipant() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
-        );
+        authenticateAsBob();
         when(chatService.findById(2)).thenReturn(TestDataHelper.existingWaitingChat());
 
         mvc.perform(get("/api/chats/2"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldFindByIdAsAdminForAnyChat() throws Exception {
+        authenticateAsCarol();
+        when(chatService.findById(2)).thenReturn(TestDataHelper.existingWaitingChat());
+
+        mvc.perform(get("/api/chats/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("WAITING"))
+                .andExpect(jsonPath("$.client.password").doesNotExist());
     }
 
     @Test
@@ -303,12 +311,24 @@ class ChatControllerTest {
     void shouldRejectMessagesForNonParticipant() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
-                        "carol", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                        "dave", "password", List.of(new SimpleGrantedAuthority("ROLE_AGENT")))
         );
         when(chatService.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
 
         mvc.perform(get("/api/chats/1/messages"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldFindMessagesAsAdminForAnyChat() throws Exception {
+        authenticateAsCarol();
+        when(chatService.findById(1)).thenReturn(TestDataHelper.existingActiveChat());
+        when(messageService.findByChatId(1)).thenReturn(
+                List.of(TestDataHelper.existingClientMessage(), TestDataHelper.existingAgentMessage()));
+
+        mvc.perform(get("/api/chats/1/messages"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value("My laptop will not turn on."));
     }
 
     @Test

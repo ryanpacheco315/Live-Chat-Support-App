@@ -169,7 +169,7 @@ function AllChatsPage() {
                     No chats found.
                 </p>
             ) : (
-                <table className="table table-striped">
+                <table className="table table-striped table-hover">
                     <thead>
                         <tr>
                             <th>Client</th>
@@ -177,6 +177,7 @@ function AllChatsPage() {
                             <th>Status</th>
                             <th>Category</th>
                             <th>Description</th>
+                            <th />
                         </tr>
                     </thead>
                     <tbody>

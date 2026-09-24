@@ -106,7 +106,7 @@ public class ChatController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (!isParticipant(chat, authentication.getName())) {
+        if (!isParticipant(chat, authentication.getName()) && !isAdmin(authentication)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -182,7 +182,7 @@ public class ChatController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (!isParticipant(chat, authentication.getName())) {
+        if (!isParticipant(chat, authentication.getName()) && !isAdmin(authentication)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -233,5 +233,10 @@ public class ChatController {
     private boolean isParticipant(Chat chat, String username) {
         return chat.getClient().getUsername().equals(username)
                 || (chat.getAgent() != null && chat.getAgent().getUsername().equals(username));
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
     }
 }

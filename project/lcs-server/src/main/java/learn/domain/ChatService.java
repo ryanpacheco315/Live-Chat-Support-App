@@ -194,6 +194,7 @@ public class ChatService {
         }
 
         result.setPayload(closedChat);
+        messagingTemplate.convertAndSend(QUEUE_TOPIC, QueueUpdate.removed(chatId));
         messagingTemplate.convertAndSend("/topic/chat/" + chatId, MessageResponse.fromMessage(systemMessage));
         messagingTemplate.convertAndSend("/topic/chat/" + chatId, ChatResponse.fromChat(closedChat));
         return result;

@@ -32,7 +32,7 @@ function AgentQueuePage() {
                             ? current
                             : [...current, update.chat]
                     );
-                } else if (update.type === "CLAIMED") {
+                } else if (update.type === "CLAIMED" || update.type === "REMOVED") {
                     setChats((current) => current.filter((chat) => chat.id !== update.chatId));
                 }
             });

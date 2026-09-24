@@ -300,6 +300,7 @@ class ChatServiceTest {
                 message.getChatId() == 2 && message.getSender() == null));
         verify(chatEmbeddingService).embedChat(closedChat);
         verify(messagingTemplate, times(2)).convertAndSend(eq("/topic/chat/2"), any(Object.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/queue"), any(Object.class));
     }
 
     @Test

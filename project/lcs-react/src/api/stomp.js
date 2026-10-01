@@ -1,6 +1,6 @@
 import { Client } from "@stomp/stompjs";
 
-const WS_URL = "ws://localhost:8080/ws";
+const WS_URL = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
 
 export function createStompClient() {
     return new Client({

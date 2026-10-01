@@ -129,3 +129,9 @@ Uses the api from client that creates the fetch.
 - Home page hero section instead of stacked plain paragraphs.
 - Bug fix: CreateAgentPage's form was rendering as unstyled native browser inputs (misused .form-control as a div wrapper instead of on the inputs
   themselves) — fixed and brought in line with the Login/Signup layout, which also got a card-wrapped treatment.
+
+26: Admin: view chat history from All Chats
+- Admins can now click any row in the All Chats table to view that chat's full transcript, regardless of status (WAITING/ACTIVE/CLOSED) or whether
+  the admin was ever a participant.
+- Backend: GET /api/chats/{id} and GET /api/chats/{id}/messages now also accept ROLE_ADMIN, not just the chat's own client/agent.
+- Frontend: reuses the existing ChatTranscriptPage (built for client/agent past-chat history) under a new /admin/chats/:id route -- no new component needed.
